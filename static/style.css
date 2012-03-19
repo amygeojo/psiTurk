@@ -1,7 +1,5 @@
 
 body {
-    /* background: #999; */
-    background: black; /* #808090; */
     color: white;
     text-align: center;
     font-family: Verdana, Helvetica, sans-serif;
@@ -10,16 +8,16 @@ body {
 }
 
 a {
-    color: #FFCC90;
+    color: #aa1111;
 }
 
 .warm {
-    color: #DDAA90;
+    color: #661111;
 }
 
 strong {
     font-weight: bold;
-    color: #DDAA90;
+    color: #661111;
 }
 
 /* Instruction styles */
@@ -90,7 +88,7 @@ strong {
 }
 .instruct .subbox p {
     padding: 15px 20px;
-    border: 1px solid white;
+    border: 1px solid black;
 }
 
 .instruct table {
@@ -98,9 +96,7 @@ strong {
 }
 
 .instruct .outerbox {
-    border: 1px dashed #A54;
-    border: 1px solid gray;
-    border: 2px solid #ddd;
+    border: 2px solid #222;
 }
 
 .instruct .innerbox {
