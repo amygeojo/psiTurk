@@ -5,8 +5,8 @@ body {
     color: black;
     text-align: center;
     font-family: Verdana, Helvetica, sans-serif;
-    width: 680px;
     margin: 0 auto;
+    background: #aac;
 }
 
 a {
@@ -21,10 +21,6 @@ a {
     color: #111166;
 }
 
-.cool {
-    color: #ccccff;
-}
-
 strong {
     font-weight: bold;
     color: #661111;
@@ -32,9 +28,11 @@ strong {
 
 /* Instruction styles */
 #main {
-    margin: 0 auto;
     width: 680px;
-    font-size: 100%;
+    background: white;
+    padding: 20px;
+    margin: 10px auto;
+    overflow: hidden;
 }
 
 .continue  {
@@ -134,7 +132,13 @@ strong {
 }
 
 /* Questionnaire style */
-
+#questionnaire {
+    width: 680px;
+    background: white;
+    padding: 20px;
+    margin: 10px auto;
+    overflow: hidden;
+}
 #questionnaire p {
     font-size: 150%;
 }
@@ -191,7 +195,7 @@ input {
 #questionnaire .questiontext {
     float: left;
     width: 280px;
-    color: #bbbbff;
+    color: #111166;
     margin: 0;
     margin-right: 10px;
 }
@@ -209,7 +213,10 @@ input {
 }
 
 #debriefing {
-    width: 640px;
+    width: 680px;
+    margin: 20px auto;
+    padding: 10px;
+    background: white;
 }
 
 #debriefingtext {
@@ -217,15 +224,20 @@ input {
     padding: 10px 20px;
     font-size: 80%;
     text-align: justify;
-    border: 1px solid black;
+    /*border: 1px solid black; */
 }
 #affirmationbox {
     position: relative;
-    margin:  0 auto;
-    border: 1px dotted black; 
-    padding: 10px 20px;
+    margin:  10px;
+    border-top: 1px dotted black; 
+    padding: 0px 20px;
     vertical-align: middle;
 }
+#affirmationbox h1 {
+    text-align: center;
+    font-size: 1em;
+}
+
 #affirmationbox p {
     text-align: left;
     font-style: italic;
