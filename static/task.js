@@ -159,7 +159,6 @@ function submitdata() {
 
 // Globals defined initially.
 var maxblocks = 2;
-var keydownfun = function() {};
 
 // Stimulus info
 var ncards = 8,
@@ -182,8 +181,15 @@ var ncards = 8,
 	"static/images/STIM15.PNG"],
 	categorynames= [ "A", "B" ];
 
-// Interface variables
-var cardh = 180, cardw = 140, upper = 0, left = 0, imgh = 100, imgw = 100;
+// TV Stim variables
+var maxantlength = 300, extrastem = 10,
+    tvwidth=123, tvheight=100,
+    tvcanvaswidth = Math.max( maxantlength, tvwidth ),
+    tvcanvasheight = maxantlength + tvheight + extrastem,
+    tvx=(tvwidth >= maxantlength ? 0 : (maxantlength-tvwidth)/2 ), tvy=tvcanvasheight - tvheight, 
+    stemlength = (maxantlength / 2)+extrastem,
+    stemx = tvx + (tvwidth/2), 
+    stemy1 = tvy, stemy2 = tvy - stemlength;
 
 
 // Task objects
@@ -265,6 +271,30 @@ var Instructions = function( screens ) {
 	this.nextForm();
 };
 
+/************************
+* DRAWING THE TV        *
+************************/
+var tvcanvas;
+var draw_line = function( x1, y1, x2, y2 ) {
+	pathstring = Raphael.format( "M{0},{1}L{2},{3}", x1, y1, x2, y2 );
+	return tvcanvas.path(pathstring);
+};
+var draw_tv = function(length, angle, tvimage) {
+	// TV params
+	var angle_radiens = (angle / 180) * Math.PI,
+	    xdelta = length * Math.cos( angle_radiens ),
+	    ydelta = length * Math.sin( angle_radiens );
+	
+	var strokewidth = 3,
+	    antenna_attr = {"stroke-width": strokewidth},
+	    stem_attr = {"stroke-width": strokewidth,
+	                 "stroke": "#999"};
+	
+	var stem = draw_line(stemx, stemy1, stemx, stemy2).attr(stem_attr);
+	var antenna = draw_line(stemx-xdelta, stemy2-ydelta,
+	                        stemx+xdelta, stemy2+ydelta).attr(antenna_attr);
+	var tv = tvcanvas.image(tvimage, tvx, tvy, tvwidth, tvheight);
+};
 
 /********************
 * CODE FOR TEST     *
@@ -285,6 +315,7 @@ var TestPhase = function() {
 	var textprompt = '<p id="prompt">Type<br> "R" for Red<br>"B" for blue<br>"G" for green.';
 	showpage( 'test' );
 	
+	
 	var addprompt = function() {
 		buttonson = new Date().getTime();
 		$('#query').html( textprompt ).show();
@@ -295,14 +326,14 @@ var TestPhase = function() {
 		givequestionnaire();
 	};
 	
-	var nextword = function () {
+	var nextstim = function () {
 		if (! stims.length) {
 			finishblock();
 		}
 		else {
 			stim = stims.pop();
-			show_word( stim[0], stim[1] );
-			wordon = new Date().getTime();
+			draw_tv( maxantlength/2, 100, "static/images/tvnan.png" );
+			stimon = new Date().getTime();
 			//stimimage = testcardpaper.image( cardnames[getstim(prescard)], 0, 0, imgw, imgh);
 			responsefun = function( keyCode ) {
 				var response;
@@ -326,10 +357,10 @@ var TestPhase = function() {
 				if ( response.length>0 ) {
 					responsefun = function() {};
 					var hit = response == stim[1];
-					var rt = new Date().getTime() - wordon;
+					var rt = new Date().getTime() - stimon;
 					recordtesttrial (stim[0], stim[1], stim[2], response, hit, rt );
-					remove_word();
-					nextword();
+					tvcanvas.clear();
+					nextstim();
 				}
 			};
 			addprompt();
@@ -337,19 +368,12 @@ var TestPhase = function() {
 	};
 	
 	//Set up stimulus.
-	var R = Raphael("stim", 400, 100),
-		font = "64px Helvetica";
+	tvcanvas = Raphael(document.getElementById("stim"), tvcanvaswidth, tvcanvasheight );
 	
-	var show_word = function(text, color) {
-		R.text( 200, 50, text ).attr({font: font, fill: color});
-	};
-	var remove_word = function(text, color) {
-		R.clear();
-	};
 	$("body").focus().keydown(function(e){keydownfun(e);});
-    keydownfun = function(event) {
-        responsefun( event.keyCode );
-    };
+    //keydownfun = function(event) {
+    //    responsefun( event.keyCode );
+    //};
 	//testcardpaper = Raphael(document.getElementById("testcanvas"), w, h);
 	// TODO: expand out to 50
 	var stims = [
@@ -364,7 +388,7 @@ var TestPhase = function() {
 		["RED", "blue", "incongruent"]
 		];
 	shuffle( stims );
-	nextword();
+	nextstim();
 	return this;
 };
 
