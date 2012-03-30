@@ -138,6 +138,13 @@ function appendtobody( tag, id, contents ) {
 	return el;
 }
 
+// Gets a path string describing a line in Raphael.
+function raphael_line( x1, y1, x2, y2 ) {
+	pathstring = Raphael.format( "M{0},{1}L{2},{3}", x1, y1, x2, y2 );
+	return pathstring;
+}
+
+
 // Data submission
 // NOTE: Ended up not using this.
 function posterror() { alert( "There was an error. TODO: Prompt to resubmit here." ); }
@@ -158,28 +165,13 @@ function submitdata() {
 ********************/
 
 // Globals defined initially.
-var maxblocks = 2;
 
 // Stimulus info
-var ncards = 8,
-    cardnames = [
-	"static/images/STIM00.PNG",
-	"static/images/STIM01.PNG",
-	"static/images/STIM02.PNG",
-	"static/images/STIM03.PNG",
-	"static/images/STIM04.PNG",
-	"static/images/STIM05.PNG",
-	"static/images/STIM06.PNG",
-	"static/images/STIM07.PNG",
-	"static/images/STIM08.PNG",
-	"static/images/STIM09.PNG",
-	"static/images/STIM10.PNG",
-	"static/images/STIM11.PNG",
-	"static/images/STIM12.PNG",
-	"static/images/STIM13.PNG",
-	"static/images/STIM14.PNG",
-	"static/images/STIM15.PNG"],
-	categorynames= [ "A", "B" ];
+var tvImages = {
+	broken: "static/images/tvnan.png",
+	ch1: "static/images/tvch1.png",
+	ch2: "static/images/tvch2.png" 
+};
 
 // TV Stim variables
 var maxantlength = 300, extrastem = 10,
@@ -190,6 +182,11 @@ var maxantlength = 300, extrastem = 10,
     stemlength = (maxantlength / 2)+extrastem,
     stemx = tvx + (tvwidth/2), 
     stemy1 = tvy, stemy2 = tvy - stemlength;
+
+// Timin gvariables
+var prequerytime = 500; // Time after stim goes on, before query buttons go on.
+var acknowledgmenttime = 500; // Time after response before stim goes off
+var isi = 500; // ISI
 
 
 // Task objects
@@ -204,11 +201,11 @@ var responsedata = [],
 
 // Data handling functions
 function recordinstructtrial (instructname, rt ) {
-	trialvals = [subjid, "INSTRUCT", instructname, rt];
+	trialvals = subjinfo +  ["INSTRUCT", instructname, rt];
 	datastring = datastring.concat( trialvals, "\n" );
 }
 function recordtesttrial (word, color, trialtype, resp, hit, rt ) {
-	trialvals = [subjid, currenttrial,  "TEST", word, color, hit, resp, hit, rt];
+	trialvals = subjinfo +  [currenttrial,  "TEST", word, color, hit, resp, hit, rt];
 	datastring = datastring.concat( trialvals, "\n" );
 	currenttrial++;
 }
@@ -229,57 +226,24 @@ var pagenames = [
 ];
 
 
-/************************
-* CODE FOR INSTRUCTIONS *
-************************/
-var Instructions = function( screens ) {
-	var that = this,
-		currentscreen = "",
-		timestamp;
-	for( i=0; i<screens.length; i++) {
-		pagename = screens[i];
-		$.ajax({ 
-			url: pagename + ".html",
-			success: function(pagename){ return function(page){ pages[pagename] = page; }; }(pagename),
-			async: false
-		});
-	}
+/********************
+* Experiment block object
+********************/
+var currentBlock;
 
-	this.recordtrial = function() {
-		rt = (new Date().getTime()) - timestamp;
-		recordinstructtrial( currentscreen, rt  );
-	};
-	
-	this.nextForm = function () {
-		var next = screens.splice(0, 1)[0];
-		currentscreen = next;
-		showpage( next );
-		timestamp = new Date().getTime();
-		if ( screens.length === 0 ) $('.continue').click(function() {
-			that.recordtrial();
-			that.startTest();
-		});
-		else $('.continue').click( function() {
-			that.recordtrial();
-			that.nextForm();
-		});
-	};
-	this.startTest = function() {
-		// startTask();
-		testobject = new TestPhase();
-	};
-	this.nextForm();
-};
+function ExperimentBlock() { }
 
-/************************
-* DRAWING THE TV        *
-************************/
-var tvcanvas;
-var draw_line = function( x1, y1, x2, y2 ) {
-	pathstring = Raphael.format( "M{0},{1}L{2},{3}", x1, y1, x2, y2 );
-	return tvcanvas.path(pathstring);
-};
-var draw_tv = function(length, angle, tvimage) {
+// Mutable variables
+ExperimentBlock.prototype.trialnum = 0;
+ExperimentBlock.prototype.blocknum = 0;
+
+// Some imporant variables.
+ExperimentBlock.prototype.tvcanvas = Raphael(document.getElementById("stim"), tvcanvaswidth, tvcanvasheight );
+ExperimentBlock.prototype.acknowledgment = '<p>Thanks for your response!</p>';
+ExperimentBlock.prototype.textprompt = '<p id="prompt">Which channel do you think this TV picks up?</p>';
+
+// Stimulus drawing methods:
+ExperimentBlock.prototype.draw_tv = function(length, angle, channel) {
 	// TV params
 	var angle_radiens = (angle / 180) * Math.PI,
 	    xdelta = length * Math.cos( angle_radiens ),
@@ -290,108 +254,134 @@ var draw_tv = function(length, angle, tvimage) {
 	    stem_attr = {"stroke-width": strokewidth,
 	                 "stroke": "#999"};
 	
-	var stem = draw_line(stemx, stemy1, stemx, stemy2).attr(stem_attr);
-	var antenna = draw_line(stemx-xdelta, stemy2-ydelta,
-	                        stemx+xdelta, stemy2+ydelta).attr(antenna_attr);
-	var tv = tvcanvas.image(tvimage, tvx, tvy, tvwidth, tvheight);
+	var stem = this.tvcanvas.
+		path(this.raphael_line(stemx, stemy1, stemx, stemy2)).
+		attr(stem_attr);
+	var antenna = this.tvcanvas.
+		path(this.raphael_line(stemx-xdelta, stemy2-ydelta,
+	                        stemx+xdelta, stemy2+ydelta)).
+		attr(antenna_attr);
+	var tv = this.tvcanvas.image(tvImages[channel], tvx, tvy, tvwidth, tvheight);
 };
+ExperimentBlock.prototype.clearTV = function() { this.tvcanvas.clear(); };
+
+// Methods for doing a trial.
+ExperimentBlock.prototype.addbuttons = function(callback) {
+	$('#query').html( buttons );
+	$('input').click( callback );
+	$('#query').show();
+};
+ExperimentBlock.prototype.addprompt = function() {
+	$('#query').html( textprompt ).show();
+};
+ExperimentBlock.prototype.dotrial = function(stim) {
+	draw_tv( maxantlength/2, 100, "broken" );
+	// stimon = new Date().getTime();
+	setTimeout(
+		function(){
+			lock=false;
+			var buttonson = new Date().getTime();
+			addbuttons(function() {
+				var resp = this.value;
+				var rt = (new Date().getTime()) - buttonson;
+				this.recordQueryTrial(stim, resp, rt);
+				$('#query').html( this.acknowledgment );
+				// Wait acknowledgmenttime to clear screen
+				setTimeout(
+					function() {
+						$('#query').html('');
+						this.clearTV();
+						// Wait ISI to go to next trial.
+						setTimeout( this.nexttrial, isi );
+					},
+					acknowledgmenttime);
+			});
+		},
+		prequerytime);
+};
+
+ExperimentBlock.prototype.recordtrial = function(stim, resp, rt ) {
+	trialvals = subjinfo +  [this.trialnum, this.blocknum] + stim + [resp, rt];
+	datastring = datastring.concat( trialvals, "\n" );
+	currenttrial++;
+};
+
+ExperimentBlock.prototype.nexttrial = function() {
+	if (! this.items.length) {
+		finishblock();
+	}
+	else {
+		ExperimentBlock.prototype.trialnum += 1;
+		var stim = stims.pop();
+		this.dotrial( stim );
+	}
+};
+
+ExperimentBlock.prototype.beginblock = function() { 
+	this.nexttrial(); 
+};
+ExperimentBlock.prototype.finishblock = function() { };
+
+/************************
+* INSTRUCTIONS OBJECT   *
+************************/
+function InstructBlock() {
+	ExperimentBlock.call(this); // Call parent constructor
+}
+
+TestPhase.prototype = new ExperimentBlock(instructionscreens);
+TestPhase.prototype.constructor = TestPhase;
+
+InstructBlock.prototype.items = [
+	"instruct1",
+	"instructFinal"
+];
+
+// Show an instruction screen.
+InstructBlock.prototype.dotrial = function(stim) {
+    if (this.items.length === 0) {
+        this.finishblock();
+        return false;
+    }
+    var that = this,
+        currentscreen = screens.splice(0, 1)[0];
+    showpage( currentscreen );
+    var timestamp = new Date().getTime();
+    $('.continue').click( function() {
+        that.recordtrial();
+        that.dotrial();
+    });
+    return true;
+};
+
+// Flow control:
+InstructBlock.prototype.finishblock = function() {
+    // TODO: maybe add instruction quiz.
+	test = new TestPhase();
+	test.beginblock();
+};
+
+// Record
+InstructBlock.prototype.recordtrial = function(currentscreen, rt) {
+	recordinstructtrial( currentscreen, rt );
+	trialvals = subjinfo + ["INSTRUCT", stim, rt];
+	datastring = datastring.concat( trialvals, "\n" );
+};
+
 
 /********************
 * CODE FOR TEST     *
 ********************/
 
-var TestPhase = function() {
-	var i,
-	    that = this, // make 'this' accessble by privileged methods
-	    lock,
-	    stimimage,
-	    buttonson,
-	    prescard,
-	    testcardsleft = new Array();
-	
-	this.hits = new Array();
-	
-	var acknowledgment = '<p>Thanks for your response!</p>';
-	var textprompt = '<p id="prompt">Type<br> "R" for Red<br>"B" for blue<br>"G" for green.';
-	showpage( 'test' );
-	
-	
-	var addprompt = function() {
-		buttonson = new Date().getTime();
-		$('#query').html( textprompt ).show();
-	};
-	
-	var finishblock = function() {
-		keydownfun = function() {}; // Should unbind keys.
-		givequestionnaire();
-	};
-	
-	var nextstim = function () {
-		if (! stims.length) {
-			finishblock();
-		}
-		else {
-			stim = stims.pop();
-			draw_tv( maxantlength/2, 100, "static/images/tvnan.png" );
-			stimon = new Date().getTime();
-			//stimimage = testcardpaper.image( cardnames[getstim(prescard)], 0, 0, imgw, imgh);
-			responsefun = function( keyCode ) {
-				var response;
-				switch (keyCode) {
-				case 82:
-					// "R"
-					response="red";
-					break;
-				case 71:
-					// "G"
-					response="green";
-					break;
-				case 66:
-					// "B"
-					response="blue";
-					break;
-				default:
-					response = "";
-					break;
-				}
-				if ( response.length>0 ) {
-					responsefun = function() {};
-					var hit = response == stim[1];
-					var rt = new Date().getTime() - stimon;
-					recordtesttrial (stim[0], stim[1], stim[2], response, hit, rt );
-					tvcanvas.clear();
-					nextstim();
-				}
-			};
-			addprompt();
-		}
-	};
-	
-	//Set up stimulus.
-	tvcanvas = Raphael(document.getElementById("stim"), tvcanvaswidth, tvcanvasheight );
-	
-	$("body").focus().keydown(function(e){keydownfun(e);});
-    //keydownfun = function(event) {
-    //    responsefun( event.keyCode );
-    //};
-	//testcardpaper = Raphael(document.getElementById("testcanvas"), w, h);
-	// TODO: expand out to 50
-	var stims = [
-		["SHIP", "red", "unrelated"],
-		["MONKEY", "green", "unrelated"],
-		["ZAMBONI", "blue", "unrelated"],
-		["RED", "red", "congruent"],
-		["GREEN", "green", "congruent"],
-		["BLUE", "blue", "congruent"],
-		["GREEN", "red", "incongruent"],
-		["BLUE", "green", "incongruent"],
-		["RED", "blue", "incongruent"]
-		];
-	shuffle( stims );
-	nextstim();
-	return this;
-};
+function TestBlock() {
+	ExperimentBlock.call(this); // Call parent constructor
+}
 
+TestPhase.prototype = new ExperimentBlock();
+TestPhase.prototype.constructor = TestBlock;
+
+	
+	
 /*************
 * Finish up  *
 *************/
