@@ -200,10 +200,6 @@ var responsedata = [],
     lastperfect = false;
 
 // Data handling functions
-function recordinstructtrial (instructname, rt ) {
-	trialvals = subjinfo +  ["INSTRUCT", instructname, rt];
-	datastring = datastring.concat( trialvals, "\n" );
-}
 function recordtesttrial (word, color, trialtype, resp, hit, rt ) {
 	trialvals = subjinfo +  [currenttrial,  "TEST", word, color, hit, resp, hit, rt];
 	datastring = datastring.concat( trialvals, "\n" );
@@ -222,7 +218,8 @@ var showpage = function(pagename) {
 var pagenames = [
 	"postquestionnaire",
 	"test",
-	"instruct"
+	"instruct",
+	"instructfinal"
 ];
 
 
@@ -238,17 +235,23 @@ ExperimentBlock.prototype.trialnum = 0;
 ExperimentBlock.prototype.blocknum = 0;
 
 // Some imporant variables.
-ExperimentBlock.prototype.tvcanvas = Raphael(document.getElementById("stim"), tvcanvaswidth, tvcanvasheight );
 ExperimentBlock.prototype.acknowledgment = '<p>Thanks for your response!</p>';
 ExperimentBlock.prototype.textprompt = '<p id="prompt">Which channel do you think this TV picks up?</p>';
+ExperimentBlock.prototype.buttons = ExperimentBlock.prototype.textprompt + 
+		'<div id="inputs">\
+				<input type="button" id="ch1" value="ch1">\
+				<input type="button" id="ch2" value="ch2">\
+		</div>';
 
-// Stimulus drawing methods:
+// Draws a TV on the Raphael paper:
 ExperimentBlock.prototype.draw_tv = function(length, angle, channel) {
+    console.warn( "Trying to draw tv." );
 	// TV params
 	var angle_radiens = (angle / 180) * Math.PI,
 	    xdelta = length * Math.cos( angle_radiens ),
 	    ydelta = length * Math.sin( angle_radiens );
 	
+    // Attributes
 	var strokewidth = 3,
 	    antenna_attr = {"stroke-width": strokewidth},
 	    stem_attr = {"stroke-width": strokewidth,
@@ -257,22 +260,25 @@ ExperimentBlock.prototype.draw_tv = function(length, angle, channel) {
 	var stem = this.tvcanvas.
 		path(this.raphael_line(stemx, stemy1, stemx, stemy2)).
 		attr(stem_attr);
+    
 	var antenna = this.tvcanvas.
 		path(this.raphael_line(stemx-xdelta, stemy2-ydelta,
 	                        stemx+xdelta, stemy2+ydelta)).
 		attr(antenna_attr);
 	var tv = this.tvcanvas.image(tvImages[channel], tvx, tvy, tvwidth, tvheight);
 };
+
+// Clears off the paper.
 ExperimentBlock.prototype.clearTV = function() { this.tvcanvas.clear(); };
 
 // Methods for doing a trial.
 ExperimentBlock.prototype.addbuttons = function(callback) {
-	$('#query').html( buttons );
+	$('#query').html( this.buttons );
 	$('input').click( callback );
 	$('#query').show();
 };
 ExperimentBlock.prototype.addprompt = function() {
-	$('#query').html( textprompt ).show();
+	$('#query').html( this.textprompt ).show();
 };
 ExperimentBlock.prototype.dotrial = function(stim) {
 	draw_tv( maxantlength/2, 100, "broken" );
@@ -307,20 +313,26 @@ ExperimentBlock.prototype.recordtrial = function(stim, resp, rt ) {
 };
 
 ExperimentBlock.prototype.nexttrial = function() {
+    console.warn( "next trial run" );
 	if (! this.items.length) {
-		finishblock();
+        console.warn( "Items finished" );
+		this.finishblock();
 	}
 	else {
+        console.warn( "Running item", item );
 		ExperimentBlock.prototype.trialnum += 1;
-		var stim = stims.pop();
-		this.dotrial( stim );
+		var item = this.items.pop();
+		this.dotrial( item );
 	}
 };
 
-ExperimentBlock.prototype.beginblock = function() { 
+ExperimentBlock.prototype.startblock = function() { 
+	this.tvcanvas = Raphael(document.getElementById("stim"), tvcanvaswidth, tvcanvasheight );
 	this.nexttrial(); 
 };
-ExperimentBlock.prototype.finishblock = function() { };
+ExperimentBlock.prototype.finishblock = function() {
+    ExperimentBlock.prototype.blocknum += 1;
+};
 
 /************************
 * INSTRUCTIONS OBJECT   *
@@ -329,27 +341,22 @@ function InstructBlock() {
 	ExperimentBlock.call(this); // Call parent constructor
 }
 
-TestPhase.prototype = new ExperimentBlock(instructionscreens);
-TestPhase.prototype.constructor = TestPhase;
+InstructBlock.prototype = new ExperimentBlock();
+InstructBlock.prototype.constructor = InstructBlock;
 
 InstructBlock.prototype.items = [
-	"instruct1",
-	"instructFinal"
-];
+	"instruct",
+	"instructfinal"
+].reverse();
 
 // Show an instruction screen.
-InstructBlock.prototype.dotrial = function(stim) {
-    if (this.items.length === 0) {
-        this.finishblock();
-        return false;
-    }
-    var that = this,
-        currentscreen = screens.splice(0, 1)[0];
+InstructBlock.prototype.dotrial = function(currentscreen) {
+    var that = this;
     showpage( currentscreen );
     var timestamp = new Date().getTime();
     $('.continue').click( function() {
         that.recordtrial();
-        that.dotrial();
+        that.nexttrial();
     });
     return true;
 };
@@ -357,30 +364,46 @@ InstructBlock.prototype.dotrial = function(stim) {
 // Flow control:
 InstructBlock.prototype.finishblock = function() {
     // TODO: maybe add instruction quiz.
-	test = new TestPhase();
-	test.beginblock();
+	test = new TestBlock();
+	test.startblock();
 };
 
 // Record
 InstructBlock.prototype.recordtrial = function(currentscreen, rt) {
-	recordinstructtrial( currentscreen, rt );
-	trialvals = subjinfo + ["INSTRUCT", stim, rt];
+	trialvals = subjinfo + ["INSTRUCT", currentscreen, rt];
 	datastring = datastring.concat( trialvals, "\n" );
 };
 
 
+// define the Person Class
+function Person() {}
+
+Person.prototype.walk = function(){
+	alert ('I am walking!');
+};
+Person.prototype.sayHello = function(){
+	alert ('hello');
+};
+
+
 /********************
-* CODE FOR TEST     *
+* TEST OBJECT       *
 ********************/
 
 function TestBlock() {
 	ExperimentBlock.call(this); // Call parent constructor
+    showpage( "test" );
+	this.tvcanvas = Raphael(document.getElementById("stim"), tvcanvaswidth, tvcanvasheight );
 }
 
-TestPhase.prototype = new ExperimentBlock();
-TestPhase.prototype.constructor = TestBlock;
+TestBlock.prototype = new ExperimentBlock();
+TestBlock.prototype.constructor = TestBlock;
 
+TestBlock.prototype.startblock = function() { 
+	this.nexttrial(); 
+};
 	
+TestBlock.items = ["a"];
 	
 /*************
 * Finish up  *
