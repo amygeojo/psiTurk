@@ -80,7 +80,7 @@ def build_abstract_task(stacked=False,
         return ret
 
 def generate_stims( task, axisBal='size', anglerotBal=0, cornerBal=0, identity=0 ):
-    assert (axisBal in ['size', 'angle']), "Invalid axisbal: %s" % axisbal
+    assert (axisBal in ['size', 'angle']), "Invalid axisbal: %s" % axisBal
     axisBal = axisBal == 'angle'
     print axisBal
     sizerange  = 230
@@ -113,7 +113,7 @@ def generate_stims( task, axisBal='size', anglerotBal=0, cornerBal=0, identity=0
     
     return [ transformstim(item) for item in task ]
 
-def build_task(stacked=False, ngrid=False, nlab=0, ntest=0, axisBal=0,
+def build_task(stacked=False, ngrid=False, nlab=0, ntest=0, axisBal='size',
                anglerotBal=0, cornerBal=0, identity=0):
     assert nlab % 2 == 0, "nlab must be even!"
     
@@ -122,7 +122,7 @@ def build_task(stacked=False, ngrid=False, nlab=0, ntest=0, axisBal=0,
                                     cornerBal, identity))
     stims = stims[:,:-1] # Pinch off the rectangle identifier here.
     
-    return np.hstack([abstract_task, stims])
+    return map(list, np.hstack([abstract_task, stims]))
 
 class tvexp:
     pass

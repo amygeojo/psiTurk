@@ -5,6 +5,7 @@ import logging
 from functools import wraps
 from random import choice
 from ConfigParser import ConfigParser
+import json
 
 # Importing flask
 from flask import Flask, render_template, request, Response, make_response
@@ -15,6 +16,9 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text
 from sqlalchemy import or_
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+
+# Actual task file
+import task
 
 
 configfilepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -361,12 +365,28 @@ def give_consent():
     print hitId, assignmentId, workerId
     return render_template('consent.html', hitid = hitId, assignmentid=assignmentId, workerid=workerId)
 
+def htmlSnippets():
+    names = [
+        "postquestionnaire",
+        "test"
+    ]
+    return dict( (name, render_template(name+".html")) for name in names )
+
+def instructionScreens():
+    screens = [
+        "instruct",
+        "instructfinal"
+    ]
+    return [render_template(screen+".html") for screen in screens]
+
 @app.route('/exp', methods=['GET'])
 def start_exp():
     """
     Serves up the experiment applet.
     """
-    if not (request.args.has_key('hitId') and request.args.has_key('assignmentId') and request.args.has_key('workerId')):
+    if not (request.args.has_key('hitId') and 
+            request.args.has_key('assignmentId') and 
+            request.args.has_key('workerId')):
         raise ExperimentError( 'hit_assign_worker_id_not_set_in_exp' )
     hitId = request.args['hitId']
     assignmentId = request.args['assignmentId']
@@ -408,7 +428,9 @@ def start_exp():
         print "Error, hit/assignment appears in database more than once (serious problem)"
         raise ExperimentError( 'hit_assign_appears_in_database_more_than_once' )
     
-    return render_template('exp.html', subj_num = myid, order=subj_counter )
+    taskparams = dict( nlab=10)
+        
+    return render_template('exp.html', subj_num = myid, order=subj_counter, pages=htmlSnippets(), instructions=instructionScreens(), stims=task.build_task(**taskparams))
 
 @app.route('/inexp', methods=['POST'])
 def enterexp():
