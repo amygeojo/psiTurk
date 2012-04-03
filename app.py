@@ -368,16 +368,11 @@ def give_consent():
 def htmlSnippets():
     names = [
         "postquestionnaire",
-        "test"
-    ]
-    return dict( (name, render_template(name+".html")) for name in names )
-
-def instructionScreens():
-    screens = [
+        "test",
         "instruct",
         "instructfinal"
     ]
-    return [render_template(screen+".html") for screen in screens]
+    return dict( (name, render_template(name+".html")) for name in names )
 
 @app.route('/exp', methods=['GET'])
 def start_exp():
@@ -428,9 +423,38 @@ def start_exp():
         print "Error, hit/assignment appears in database more than once (serious problem)"
         raise ExperimentError( 'hit_assign_appears_in_database_more_than_once' )
     
-    taskparams = dict( nlab=10)
-        
-    return render_template('exp.html', subj_num = myid, order=subj_counter, pages=htmlSnippets(), instructions=instructionScreens(), stims=task.build_task(**taskparams))
+    nlab = 40
+    axis = "size"
+    anglerange = 80
+    lengthrange = 100
+    order = "interspersed"
+    testform = "bimod"
+    respmode = "passive"
+    
+    params = dict(order = "interspersed",
+                  nlab=0,
+                  ntrain=240,
+                  ntest=0,
+                  testform="bimod",
+                  axis="size",
+                  anglerotBal=0, 
+                  cornerBal=0, 
+                  identity=0,
+                  anglerange = 80,
+                  lengthrange = 100)
+    
+    trainparams = dict( nlab=nlab,  )
+    testparams = dict( ntest=50 )
+    
+    trainstims = task.build_block(**trainparams)
+    teststims = task.build_block(**testparams)
+    
+    return render_template('exp.html',
+                           subjnum = myid, 
+                           subjinfo = [myid, nlab, axis, testform, respmode, anglerange, lengthrange],
+                           pages=htmlSnippets(), 
+                           train=trainstims,
+                           test=teststims)
 
 @app.route('/inexp', methods=['POST'])
 def enterexp():

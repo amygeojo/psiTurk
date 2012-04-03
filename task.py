@@ -2,6 +2,13 @@
 import numpy as np
 import numpy.random as nprand
 
+def bounded(x, bounds=[0,1]):
+    return x >= bounds[0] and x <= bounds[1]
+
+def random_coords_in_rect(rect, n):
+    return zip(nprand.uniform( rect[0][0], rect[0][1], n ),
+               nprand.uniform( rect[1][0], rect[1][1], n ))
+
 def gen_rects():
     leftfatx = [0, .2]
     leftskinnyx = [0, .1]
@@ -15,50 +22,136 @@ def gen_rects():
     
     return leftrects + rightrects
 
-def gen_coords_in_rect(rect, n):
-    return zip(nprand.uniform( rect[0][0], rect[0][1], n ),
-               nprand.uniform( rect[1][0], rect[1][1], n ))
+# Functions for building stim arrays
+def build_abstract_grid( n ):
+    """
+    Builds a set of stimuli which constitute a grid inside a unit cube, with
+    density determined by n. n must be square.
+    """
+    rootn = np.sqrt(n) 
+    assert rootn%1 == 0 # Makes sure n is square
+    rect = [[0,1], [0,1]]
+    coords = [[x,y] for x in np.linspace(*rect[0], num=rootn) for y in np.linspace(*rect[1], num=rootn)]
+    return np.column_stack([coords, [np.nan]*n, [np.nan]*n])
 
-def build_abstract_task(stacked=False, 
-                        ngrid=0,
-                        nlab=0,
-                        ntest=0
-                        #order='i',  # not supported in this version.
-                       ):
-    if ngrid:
-        rect = [[0,1], [0,1]]
-        coords = gen_coords_in_rect( rect, ngrid )
-        return np.column_stack([coords, [np.nan]*ngrid, [np.nan]*ngrid])
-    
-    rects = gen_rects()
-    defaultreps = 10  # number of times the layout is repeated.
-    
-    if stacked:
-        layout = [5, 3, 4, 3, 2,
-                  2, 3, 4, 3, 5]
-    else:
-        layout = [2, 3, 4, 3, 2,
-                  2, 3, 4, 3, 2]
-    
-    if ntest > 0:
-        reps = sum( sum(layout) * (np.arange(1, defaultreps)) < ntest ) + 1
-    else:
-        reps = defaultreps
-    
-    stims = []
-    for i in range(10):
-        n = layout[i] * reps
-        coords = gen_coords_in_rect( rects[i], n )
-        labels = [np.nan for _ in xrange(n)]
-        if i == 0:
-            assert (nlab/2) <= len(labels), "Too many labels for the labeled box!"
-            labels[:(nlab/2)] = [ 0 for _ in xrange( nlab/2 ) ]
-        elif i == 9:
-            labels[:(nlab/2)] = [ 1 for _ in xrange( nlab/2 ) ]
+class Task:
+    def __init__(self,
+                 order = "interspersed",
+                 nlab=0,
+                 nbasis=240,
+                 ntest=50,
+                 testform="bimod",
+                 axis="size",
+                 anglerotBal=0, 
+                 swapcorners=False, 
+                 swapidentity=False,
+                 anglerange = 60,
+                 lengthrange = 120):
         
-        for j in xrange(len(coords)):
-            stims.append( list(coords[j]) + [labels[j], i] )
+        self.order = "interspersed"
+        self.nlab = 0
+        self.nbasis = 240
+        self.ntest = ntest
+        self.testform = testform
+        self.axis = axis
+        self.anglerotBal = anglerotBal
+        self.swapcorners = swapcorners
+        self.swapidentity = swapidentity
+        self.anglerange = anglerange
+        self.lengthrange = lengthrange
+        
+        self.checkinputs()
+        
+        self.lengthoffset = 30
+        
+        # Inferred parameters
+        self.bounds = {'length': [self.lengthoffset, self.lengthrange+self.lengthoffset], 
+                       'angle': [self.angleoffset, self.anglerange+self.angleoffset]}
+        self.stacked = self.nlab > (self.nbasis / 7)
     
+    # Check various properties of the inputs
+    def checkinputs(self):
+        assert self.nbasis % 28 == 0
+        assert self.testform in ["bimodal", "grid"]
+        assert self.axis in ["size", "angle"]
+        assert ((self.anglerotBal+self.anglerange)<=90 and self.anglerotBal<=90) or ((self.anglerotBal+self.anglerange)>=90 and self.anglerotBal>=90)
+        assert self.anglerotBal < 180
+        assert self.anglerange <= 90
+        assert self.cornerBal in [False, True]
+        assert self.identity in [False, True]
+    
+    # Methods to find 'actual' stims given abstract stims.
+    def transform_length(self, length_val):
+        assert bounded(length_val, [0,1])
+        lengthbounds = self.bounds['length']
+        return (length_val*(lengthbounds[1] - lengthbounds[0])) + lengthbounds[0]
+    
+    # y is angle
+    def transform_angle(self, angle_val):
+        assert bounded(angle_val, [0,1])
+        anglebounds = self.bounds['angle']
+        return (angle_val*(anglebounds[1] - anglebounds[0])) + anglebounds[0]
+    
+    def transformstim(self, stim):
+        ret = np.array(stim)
+        stimflip = stim
+        if self.swapcorners:
+            stimflip[1] = 1 - stim[1]
+        if self.axis == "size":
+            size_abstract = stimflip[0]
+            angle_abstract = stimflip[1]
+        elif self.axis == "angle":
+            size_abstract = stimflip[1]
+            angle_abstract = stimflip[0]
+        ret[0] = self.transform_size( size_abstract )
+        ret[1] = self.transform_angle( angle_abstract )
+        label = ret[2]
+        if self.swapidentity:
+            label = not label
+        ret[2] = {False: "ch1", True: "ch2"}[label]
+        return ret
+    
+    def build_abstract_task(self):
+        """
+        Returns stims for both a test phase and a training phase.
+        """
+        rects = gen_rects()
+        
+        if self.stacked:
+            layout = [5, 3, 4, 3, 2,
+                      2, 3, 4, 3, 5]
+        else:
+            layout = [2, 3, 4, 3, 2,
+                      2, 3, 4, 3, 2]
+        
+        reps = self.nlab / 28  # number of times the layout is repeated.
+        
+        testreps = sum( sum(layout) * (np.arange(1, reps)) < self.ntest ) + 1
+        trainreps = reps
+        
+        teststims = []
+        trainstims = []
+        for i in range(len(layout)):
+            ntrain = layout[i] * trainreps
+            ntest = layout[i] * testreps
+            traincoords = random_coords_in_rect( rects[i], n )
+            testcoords = random_coords_in_rect( rects[i], n )
+            trainlabels = [np.nan for _ in xrange(ntrain)]
+            testlabels = [np.nan for _ in xrange(ntest)]
+            # Add in labels if we're in a labeled area
+            if i == 0:
+                assert (self.nlab/2) <= len(trainlabels), "Too many labels for the labeled box!"
+                trainlabels[:(self.nlab/2)] = [ 0 for _ in xrange( self.nlab/2 ) ]
+            elif i == 9:
+                trainlabels[:(self.nlab/2)] = [ 1 for _ in xrange( self.nlab/2 ) ]
+            
+            for j in xrange(len(traincoords)):
+                trainstims.append( list(traincoords[j]) + [trainlabels[j], i] )
+            for j in xrange(len(testcoords)):
+                teststims.append( list(testcoords[j]) + [testlabels[j], i] )
+
+
+
     # Make sure last 10 are unlabeled and evenly chosen from the two sides.
     nprand.shuffle(stims)
     unlab1 = [ stim for stim in stims if np.isnan( stim[2] ) and stim[3]<5 ]
@@ -83,8 +176,8 @@ def generate_stims( task, axisBal='size', anglerotBal=0, cornerBal=0, identity=0
     assert (axisBal in ['size', 'angle']), "Invalid axisbal: %s" % axisBal
     axisBal = axisBal == 'angle'
     print axisBal
-    sizerange  = 230
-    sizeoffset = 50
+    sizerange  = 120
+    sizeoffset = 30
     angleoffset = anglerotBal
     anglerange = 60
     bounds = [[ sizeoffset, sizerange+sizeoffset ], [angleoffset, angleoffset+anglerange]]
@@ -113,14 +206,30 @@ def generate_stims( task, axisBal='size', anglerotBal=0, cornerBal=0, identity=0
     
     return [ transformstim(item) for item in task ]
 
-def build_task(stacked=False, ngrid=False, nlab=0, ntest=0, axisBal='size',
-               anglerotBal=0, cornerBal=0, identity=0):
+def build_train():
+    abstract_train = np.array(build_abstract_task(stacked, nlab, nbasis, ntrain))
+    trainstims = np.array(generate_stims(abstract_train, axisBal, anglerotBal,
+                                    cornerBal, identity))
+
+
+def build_block(order = "interspersed",
+                nlab=0,
+                ntrain=240,
+                ntest=0,
+                testform="bimod",
+                axis="size",
+                anglerotBal=0, 
+                cornerBal=0, 
+                identity=0,
+                anglerange = 60,
+                lengthrange = 120):
     assert nlab % 2 == 0, "nlab must be even!"
     
-    abstract_task = np.array(build_abstract_task(stacked, ngrid, nlab, ntest))
-    stims = np.array(generate_stims(abstract_task, axisBal, anglerotBal,
-                                    cornerBal, identity))
-    stims = stims[:,:-1] # Pinch off the rectangle identifier here.
+    nbasis = 280;
+    if nlab > (nbasis / 7): # WARNING: Assumes traditional task structure.
+        stacked = True
+    
+    trainstims = trainstims[:,:-1] # Pinch off the rectangle identifier here (it's already accounted for).
     
     return map(list, np.hstack([abstract_task, stims]))
 

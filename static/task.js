@@ -138,6 +138,10 @@ function appendtobody( tag, id, contents ) {
 	return el;
 }
 
+function displayscreen( screenname ) {
+    $("body").html( pages[screenname] );
+}
+
 // Gets a path string describing a line in Raphael.
 function raphael_line( x1, y1, x2, y2 ) {
 	pathstring = Raphael.format( "M{0},{1}L{2},{3}", x1, y1, x2, y2 );
@@ -201,6 +205,9 @@ var responsedata = [],
 // Data handling functions
 function recordtesttrial (word, color, trialtype, resp, hit, rt ) {
 	trialvals = subjinfo +  [currenttrial,  "TEST", word, color, hit, resp, hit, rt];
+	for (var i=0; i<trialvals.length-1; i++) {
+		trialvals[i] = trialvals[i] + ",";
+	}
 	datastring = datastring.concat( trialvals, "\n" );
 	currenttrial++;
 }
@@ -234,6 +241,10 @@ ExperimentBlock.prototype.buttons = ExperimentBlock.prototype.textprompt +
 				<input type="button" id="ch1" value="ch1">\
 				<input type="button" id="ch2" value="ch2">\
 		</div>';
+ExperimentBlock.prototype.singlebutton = ExperimentBlock.prototype.textprompt + 
+		'<div id="inputs">\
+				<input type="button" id="continue" value="continue">\
+		</div>';
 
 // Draws a TV on the Raphael paper:
 ExperimentBlock.prototype.draw_tv = function(length, angle, channel) {
@@ -263,8 +274,10 @@ ExperimentBlock.prototype.draw_tv = function(length, angle, channel) {
 ExperimentBlock.prototype.clearTV = function() { this.tvcanvas.clear(); };
 
 // Methods for doing a trial.
-ExperimentBlock.prototype.addbuttons = function(callback) {
-	$('#query').html( this.buttons );
+ExperimentBlock.prototype.addbuttons = function(resptype, callback) {
+	if (resptype === "choice") resp_snippet = this.buttons;
+	else resp_snippet = this.singlebutton;
+	$('#query').html( resp_snippet );
 	$('input').click( callback );
 	$('#query').show();
 };
@@ -282,7 +295,9 @@ ExperimentBlock.prototype.dotrial = function(stim) {
 		function() {
 			lock=false;
 			var buttonson = new Date().getTime();
-			that.addbuttons(function() {
+			that.addbuttons(
+				stim[0],
+				function() {
 				var resp = this.value;
 				var rt = (new Date().getTime()) - buttonson;
 				that.recordtrial(stim, resp, rt);
@@ -302,7 +317,8 @@ ExperimentBlock.prototype.dotrial = function(stim) {
 };
 
 ExperimentBlock.prototype.recordtrial = function(stim, resp, rt ) {
-	trialvals = subjinfo +  [this.trialnum, this.blocknum] + stim + [resp, rt];
+	trialvals = subjinfo + ',' + [this.trialnum, this.blocknum] + ',' + stim + ',' + [resp, rt];
+	//console.log( trialvals );
 	datastring = datastring.concat( trialvals, "\n" );
 	currenttrial++;
 };
@@ -319,7 +335,6 @@ ExperimentBlock.prototype.nexttrial = function() {
 };
 
 ExperimentBlock.prototype.startblock = function() { 
-	this.tvcanvas = Raphael(document.getElementById("stim"), tvcanvaswidth, tvcanvasheight );
 	this.nexttrial(); 
 };
 ExperimentBlock.prototype.finishblock = function() {
@@ -329,9 +344,9 @@ ExperimentBlock.prototype.finishblock = function() {
 /************************
 * INSTRUCTIONS OBJECT   *
 ************************/
-function InstructBlock(screens) {
+function InstructBlock() {
 	ExperimentBlock.call(this); // Call parent constructor
-	this.items = screens;
+	// this.items = screens;
 }
 
 InstructBlock.prototype = new ExperimentBlock();
@@ -345,11 +360,10 @@ InstructBlock.prototype.items = [
 // Show an instruction screen.
 InstructBlock.prototype.dotrial = function(currentscreen) {
 	var that = this;
-	showpage( currentscreen );
-	$('body').html( currentscreen );
+	displayscreen( currentscreen );
 	var timestamp = new Date().getTime();
 	$('.continue').click( function() {
-		that.recordtrial();
+		that.recordtrial(currentscreen);
 		that.nexttrial();
 	});
 	return true;
@@ -358,14 +372,38 @@ InstructBlock.prototype.dotrial = function(currentscreen) {
 // Flow control:
 InstructBlock.prototype.finishblock = function() {
 	// TODO: maybe add instruction quiz.
-	test = new TestBlock(stims);
-	test.startblock();
+	currentBlock = new TrainBlock(trainstims);
+	currentBlock.startblock();
 };
 
 // Record
 InstructBlock.prototype.recordtrial = function(currentscreen, rt) {
-	trialvals = subjinfo + ["INSTRUCT", currentscreen, rt];
+	trialvals = subjinfo + ',' + ["INSTRUCT", currentscreen, rt];
+	console.log( trialvals );
+	for (var i=0; i<trialvals.length; i++) {
+		trialvals[i] = trialvals[i] + ",";
+	}
+	console.log( trialvals );
 	datastring = datastring.concat( trialvals, "\n" );
+};
+
+/********************
+* TRAINING OBJECT   *
+********************/
+
+function TrainBlock(stims) {
+	ExperimentBlock.call(this); // Call parent constructor
+    showpage( "test" );
+	this.tvcanvas = Raphael(document.getElementById("stim"), tvcanvaswidth, tvcanvasheight );
+	this.items = stims;
+}
+
+TrainBlock.prototype = new ExperimentBlock();
+TrainBlock.prototype.constructor = TrainBlock;
+
+TrainBlock.prototype.finishblock = function() {
+	currentBlock = new TestBlock(teststims);
+	currentBlock.startblock();
 };
 
 
@@ -380,14 +418,13 @@ function TestBlock(stims) {
 	this.items = stims;
 }
 
+TestBlock.prototype.finishblock = function() {
+	givequestionnaire();
+};
+
 TestBlock.prototype = new ExperimentBlock();
 TestBlock.prototype.constructor = TestBlock;
 
-TestBlock.prototype.startblock = function() { 
-	this.nexttrial(); 
-};
-
-TestBlock.prototype.items = ["a"];
 
 /*************
 * Finish up  *
@@ -397,7 +434,7 @@ var givequestionnaire = function() {
 	showpage('postquestionnaire');
 	recordinstructtrial( "postquestionnaire", (new Date().getTime())-timestamp );
 	$("#continue").click(function () {
-		finish();
+		cleanup();
 		submitquestionnaire();
 	});
 	// $('#continue').click( function(){ trainobject = new TrainingPhase(); } );
@@ -428,7 +465,7 @@ var startTask = function () {
 	};
 };
 
-var finish = function () {
+var cleanup = function () {
 	window.onbeforeunload = function(){ };
 };
 

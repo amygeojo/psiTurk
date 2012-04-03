@@ -9,9 +9,8 @@
 		
 		<script language="JavaScript">
 		// Subject info, including condition and counterbalance codes.
-		var subjid = {{ subj_num }};
-		var condition = { order: {{order}} };
-		var subjinfo = [{{subj_num}}];
+		var subjid = {{subjnum}};
+		var subjinfo = {{subjinfo|tojson|safe}};
 		
 		/*********************
 		* Get things started *
@@ -26,15 +25,15 @@
 					testobject = new TestPhase();
 					{% endif %}
 			    {% else %}
-				currentBlock = new InstructBlock(instructions);
+				currentBlock = new InstructBlock();
 				currentBlock.startblock();
 			    {% endif %}
 			}
 			
 			// Load resources then run the exp
 			pages = {{ pages|tojson|safe }};
-			instructions = {{ instructions|tojson|safe }};
-			stims = {{ stims|tojson|safe }};
+			trainstims = {{ train|tojson|safe }};
+			teststims = {{ test|tojson|safe }};
 			runfun();
 		});
 		</script>
