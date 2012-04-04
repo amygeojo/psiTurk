@@ -37,10 +37,11 @@ def build_abstract_grid( n ):
 class tvTask:
     def __init__(self,
                  order = "interspersed",
-                 nbasis = 240,
+                 nbasis = 280,
                  nlab = 0,
                  ntest = 50,
-                 testform = "bimod",
+                 testform = "bimodal",
+                 respondtrain = False,
                  axis = None,
                  swapcorners = None, 
                  swapidentity = None,
@@ -50,14 +51,15 @@ class tvTask:
                  lengthrange = 120):
         
         # These params need to not take default values:
-        assert axis
-        assert angleoffset
-        assert swapcorners
-        assert swapidentity
+        assert axis != None
+        assert angleoffset != None
+        assert swapcorners != None
+        assert swapidentity != None
         
-        self.order = "interspersed"
-        self.nlab = 0
-        self.nbasis = 240
+        self.order = order
+        self.respondtrain = respondtrain
+        self.nlab = nlab
+        self.nbasis = nbasis
         self.ntest = ntest
         self.testform = testform
         self.axis = axis
@@ -83,14 +85,16 @@ class tvTask:
     
     # Check various properties of the inputs
     def checkinputs(self):
+        print self.nbasis
         assert self.nbasis % 28 == 0
+        assert self.order in ["interspersed"]  # I'm sure I'll try out more in the future
         assert self.testform in ["bimodal", "grid", "mixed"] 
         assert self.axis in ["size", "angle"]
-        assert ((self.anglerotBal+self.anglerange)<=90 and self.anglerotBal<=90) or ((self.anglerotBal+self.anglerange)>=90 and self.anglerotBal>=90)
-        assert self.anglerotBal < 180
+        assert ((self.angleoffset+self.anglerange)<=90 and self.angleoffset<=90) or ((self.angleoffset+self.anglerange)>=90 and self.angleoffset>=90)
+        assert self.angleoffset < (180 - self.anglerange)
         assert self.anglerange <= 90
-        assert self.cornerBal in [False, True]
-        assert self.identity in [False, True]
+        assert self.swapcorners in [False, True]
+        assert self.swapidentity in [False, True]
     
     # Methods to find 'actual' stims given abstract stims.
     def transform_length(self, length_val):
@@ -115,12 +119,17 @@ class tvTask:
         elif self.axis == "angle":
             size_abstract = stimflip[1]
             angle_abstract = stimflip[0]
-        ret[0] = self.transform_size( size_abstract )
+        ret[0] = self.transform_length( size_abstract )
         ret[1] = self.transform_angle( angle_abstract )
+        ret = list(ret)
+        
         label = ret[2]
         if self.swapidentity:
-            label = not label
-        ret[2] = {False: "ch1", True: "ch2"}[label]
+            label = 1 - label
+        if np.isnan( label ):
+            ret[2] = "broken"
+        else:
+            ret[2] = {0: "ch1", 1: "ch2"}[label]
         return ret
     
     def build_abstract_task(self):
@@ -193,6 +202,29 @@ class tvTask:
         assert self.ntest % 2 == 0, "Number of test items must be even"
         teststims = unlab1[:self.ntest/2] + unlab2[:self.ntest/2]
         nprand.shuffle( teststims )
+        if self.respondtrain == "no":
+            trainstims = [ [False] + row for row in trainstims ]
+            teststims = [ [False] + row for row in teststims ]
         return trainstims, teststims
 
 
+def condition_builder(condnum, counternum):
+    anglerange = [40, 60, 80][condnum]
+    angleoffset = nprand.randint(0, 90-anglerange+1) + 180*nprand.randint(2)
+    swapcorners = [False, True][nprand.randint(2)]
+    swapidentity = [False, True][nprand.randint(2)]
+    axis = ["size", "angle"][counternum]
+    return dict(
+         order = "interspersed",
+         nbasis = 280,
+         nlab = 0,
+         ntest = 50,
+         testform = "bimodal",
+         respondtrain = "no",
+         axis = axis,
+         swapcorners = swapcorners, 
+         swapidentity = swapidentity,
+         angleoffset = angleoffset,
+         lengthoffset = 30,
+         anglerange = anglerange,
+         lengthrange = 120)

@@ -257,7 +257,7 @@ def get_random_counterbalance(session):
 # routes
 #----------------------------------------------
 
-@app.route('/debug', methods=['GET'])
+@app.route('/debug', methods = ['GET'])
 def start_exp_debug():
     # this serves up the experiment applet in debug mode
     if "cond" in request.args.keys():
@@ -352,7 +352,7 @@ def mturkroute():
     else:
         raise ExperimentError( "STATUS_INCORRECTLY_SET" )
 
-@app.route('/consent', methods=['GET'])
+@app.route('/consent', methods = ['GET'])
 def give_consent():
     """
     Serves up the consent in the popup window.
@@ -410,7 +410,7 @@ def start_exp():
             myip = request.remote_addr
         
         # set condition here and insert into database
-        newpart = Participant( hitId, myip, assignmentId, workerId, subj_cond, subj_counter)
+        newpart = Participant(hitId, myip, assignmentId, workerId, subj_cond, subj_counter)
         session.add( newpart )
         session.commit()
         myid = newpart.subjid
@@ -421,42 +421,19 @@ def start_exp():
             raise ExperimentError( 'already_started_exp' )
     else:
         print "Error, hit/assignment appears in database more than once (serious problem)"
-        raise ExperimentError( 'hit_assign_appears_in_database_more_than_once' )
+        raise ExperimentError('hit_assign_appears_in_database_more_than_once')
     
-    nlab = 40
-    axis = "size"
-    anglerange = 80
-    lengthrange = 100
-    order = "interspersed"
-    testform = "bimod"
-    respmode = "passive"
-    
-    params = dict(order = "interspersed",
-                  nlab=0,
-                  ntrain=240,
-                  ntest=0,
-                  testform="bimod",
-                  axis="size",
-                  anglerotBal=0, 
-                  cornerBal=0, 
-                  identity=0,
-                  anglerange = 80,
-                  lengthrange = 100)
-    
-    trainparams = dict( nlab=nlab,  )
-    testparams = dict( ntest=50 )
-    
-    trainstims = task.build_block(**trainparams)
-    teststims = task.build_block(**testparams)
+    taskparams = task.condition_builder(subj_cond, subj_counter)
+    taskobject = task.tvTask( ** taskparams )
     
     return render_template('exp.html',
                            subjnum = myid, 
-                           subjinfo = [myid, nlab, axis, testform, respmode, anglerange, lengthrange],
-                           pages=htmlSnippets(), 
-                           train=trainstims,
-                           test=teststims)
+                           subjinfo = [myid] + taskparams.values(),
+                           pages = htmlSnippets(), 
+                           train = taskobject.train,
+                           test = taskobject.test)
 
-@app.route('/inexp', methods=['POST'])
+@app.route('/inexp', methods = ['POST'])
 def enterexp():
     """
     AJAX listener that listens for a signal from the user's script when they
@@ -475,7 +452,7 @@ def enterexp():
         user.beginexp = datetime.datetime.now()
         session.commit()
 
-@app.route('/inexpsave', methods=['POST'])
+@app.route('/inexpsave', methods = ['POST'])
 def inexpsave():
     """
     The experiments script updates the server periodically on subjects'
@@ -497,7 +474,7 @@ def inexpsave():
             session.commit()
     return render_template('error.html', errornum= experiment_errors['intermediate_save'])
 
-@app.route('/quitter', methods=['POST'])
+@app.route('/quitter', methods = ['POST'])
 def quitter():
     """
     Subjects post data as they quit, to help us better understand the quitters.
@@ -518,7 +495,7 @@ def quitter():
             session.commit()
     return render_template('error.html', errornum= experiment_errors['tried_to_quit'])
 
-@app.route('/debrief', methods=['POST', 'GET'])
+@app.route('/debrief', methods = ['POST', 'GET'])
 def savedata():
     """
     User has finished the experiment and is posting their data in the form of a
@@ -542,7 +519,7 @@ def savedata():
     
     return render_template('debriefing.html', subjid=subjid)
 
-@app.route('/complete', methods=['POST'])
+@app.route('/complete', methods = ['POST'])
 def completed():
     """
     This is sent in when the participant completes the debriefing. The
@@ -584,8 +561,8 @@ def viewdata():
     people = get_people(people)
     return render_template('simplelist.html', records=people)
 
-@app.route('/updatestatus', methods=['POST'])
-@app.route('/updatestatus/', methods=['POST'])
+@app.route('/updatestatus', methods = ['POST'])
+@app.route('/updatestatus/', methods = ['POST'])
 def updatestatus():
     """
     Allows subject status to be updated from the web interface.
@@ -624,7 +601,7 @@ def dumpdata():
 # generic route
 #----------------------------------------------
 @app.route('/<pagename>')
-def regularpage(pagename=None):
+def regularpage(pagename = None):
     """
     Route not found by the other routes above. May point to a static template.
     """
