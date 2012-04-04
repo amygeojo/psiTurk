@@ -5,7 +5,6 @@ import logging
 from functools import wraps
 from random import choice
 from ConfigParser import ConfigParser
-import json
 
 # Importing flask
 from flask import Flask, render_template, request, Response, make_response

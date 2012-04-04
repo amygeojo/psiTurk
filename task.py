@@ -91,7 +91,7 @@ class tvTask:
         assert self.testform in ["bimodal", "grid", "mixed"] 
         assert self.axis in ["size", "angle"]
         assert ((self.angleoffset+self.anglerange)<=90 and self.angleoffset<=90) or ((self.angleoffset+self.anglerange)>=90 and self.angleoffset>=90)
-        assert self.angleoffset < (180 - self.anglerange)
+        assert self.angleoffset <= (180 - self.anglerange)
         assert self.anglerange <= 90
         assert self.swapcorners in [False, True]
         assert self.swapidentity in [False, True]
@@ -109,27 +109,27 @@ class tvTask:
         return (angle_val*(anglebounds[1] - anglebounds[0])) + anglebounds[0]
     
     def transform_stim(self, stim):
-        ret = np.array(stim)
+        ret = stim
         stimflip = stim
         if self.swapcorners:
-            stimflip[1] = 1 - stim[1]
+            stim[2] = 1 - stim[2]
         if self.axis == "size":
-            size_abstract = stimflip[0]
-            angle_abstract = stimflip[1]
-        elif self.axis == "angle":
             size_abstract = stimflip[1]
-            angle_abstract = stimflip[0]
-        ret[0] = self.transform_length( size_abstract )
-        ret[1] = self.transform_angle( angle_abstract )
+            angle_abstract = stimflip[2]
+        elif self.axis == "angle":
+            size_abstract = stimflip[2]
+            angle_abstract = stimflip[1]
+        ret.append(self.transform_length( size_abstract ))
+        ret.append(self.transform_angle( angle_abstract ))
         ret = list(ret)
         
-        label = ret[2]
+        label = stim[3]
         if self.swapidentity:
             label = 1 - label
         if np.isnan( label ):
-            ret[2] = "broken"
+            ret.append( "broken")
         else:
-            ret[2] = {0: "ch1", 1: "ch2"}[label]
+            ret.append( {0: "ch1", 1: "ch2"}[label] )
         return ret
     
     def build_abstract_task(self):
@@ -203,14 +203,18 @@ class tvTask:
         teststims = unlab1[:self.ntest/2] + unlab2[:self.ntest/2]
         nprand.shuffle( teststims )
         if self.respondtrain == "no":
-            trainstims = [ [False] + row for row in trainstims ]
-            teststims = [ [False] + row for row in teststims ]
+            trainstims = [ ["obs"] + row for row in trainstims ]
+            teststims = [ ["choice"] + row for row in teststims ]
         return trainstims, teststims
 
 
 def condition_builder(condnum, counternum):
-    anglerange = [40, 60, 80][condnum]
-    angleoffset = nprand.randint(0, 90-anglerange+1) + 180*nprand.randint(2)
+    maxlength = 120
+    maxangle = 90
+    anglerange = [70, 90][condnum // 2]
+    lengthrange = [90, 120][condnum % 2]
+    angleoffset = nprand.randint(0, maxangle-anglerange+1) + maxangle*nprand.randint(2)
+    lengthoffset = nprand.randint(0, maxlength-anglerange+1)
     swapcorners = [False, True][nprand.randint(2)]
     swapidentity = [False, True][nprand.randint(2)]
     axis = ["size", "angle"][counternum]
@@ -225,6 +229,6 @@ def condition_builder(condnum, counternum):
          swapcorners = swapcorners, 
          swapidentity = swapidentity,
          angleoffset = angleoffset,
-         lengthoffset = 30,
+         lengthoffset = lengthoffset,
          anglerange = anglerange,
-         lengthrange = 120)
+         lengthrange = lengthrange)

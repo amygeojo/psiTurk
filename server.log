@@ -1,0 +1,21 @@
+ERROR:werkzeug:Error on request:
+Traceback (most recent call last):
+  File "/Library/Python/2.7/site-packages/werkzeug/serving.py", line 159, in run_wsgi
+    execute(app)
+  File "/Library/Python/2.7/site-packages/werkzeug/serving.py", line 146, in execute
+    application_iter = app(environ, start_response)
+  File "/Library/Python/2.7/site-packages/werkzeug/debug/__init__.py", line 181, in __call__
+    response = self.execute_command(request, cmd, frame)
+  File "/Library/Python/2.7/site-packages/werkzeug/debug/__init__.py", line 126, in execute_command
+    return Response(frame.console.eval(command), mimetype='text/html')
+  File "/Library/Python/2.7/site-packages/werkzeug/debug/console.py", line 204, in eval
+    return self._ipy.runsource(code)
+  File "/Library/Python/2.7/site-packages/werkzeug/debug/console.py", line 163, in runsource
+    source_to_eval, '<debugger>', 'single'):
+  File "/System/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/code.py", line 76, in runsource
+    code = self.compile(source, filename, symbol)
+  File "/Library/Python/2.7/site-packages/werkzeug/debug/console.py", line 139, in func
+    console.loader.register(code, source)
+  File "/Library/Python/2.7/site-packages/werkzeug/debug/console.py", line 124, in register
+    for var in code.co_consts:
+AttributeError: 'NoneType' object has no attribute 'co_consts'

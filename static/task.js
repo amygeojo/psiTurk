@@ -172,7 +172,7 @@ function submitdata() {
 
 // Stimulus info
 var tvImages = {
-	NaN: "static/images/tvnan.png",
+	broken: "static/images/tvnan.png",
 	0: "static/images/tv0.png",
 	1: "static/images/tv1.png" 
 };
@@ -235,13 +235,14 @@ ExperimentBlock.prototype.blocknum = 0;
 
 // HTML snippets
 ExperimentBlock.prototype.acknowledgment = '<p>Thanks for your response!</p>';
-ExperimentBlock.prototype.textprompt = '<p id="prompt">Which channel do you think this TV picks up?</p>';
-ExperimentBlock.prototype.buttons = ExperimentBlock.prototype.textprompt + 
+ExperimentBlock.prototype.buttonprompt = '<p id="prompt">Which channel do you think this TV picks up?</p>';
+ExperimentBlock.prototype.buttons = ExperimentBlock.prototype.buttonprompt + 
 		'<div id="inputs">\
 				<input type="button" id="ch1" value="ch1">\
 				<input type="button" id="ch2" value="ch2">\
 		</div>';
-ExperimentBlock.prototype.singlebutton = ExperimentBlock.prototype.textprompt + 
+ExperimentBlock.prototype.continueprompt = '<p id="prompt">Please press continue to acknowledge.</p>';
+ExperimentBlock.prototype.singlebutton = ExperimentBlock.prototype.continueprompt + 
 		'<div id="inputs">\
 				<input type="button" id="continue" value="continue">\
 		</div>';
@@ -253,7 +254,7 @@ ExperimentBlock.prototype.draw_tv = function(length, angle, channel) {
 	    xdelta = length * Math.cos( angle_radiens ),
 	    ydelta = length * Math.sin( angle_radiens );
 	
-    // Attributes
+	// Attributes
 	var strokewidth = 3,
 	    antenna_attr = {"stroke-width": strokewidth},
 	    stem_attr = {"stroke-width": strokewidth,
@@ -275,21 +276,21 @@ ExperimentBlock.prototype.clearTV = function() { this.tvcanvas.clear(); };
 
 // Methods for doing a trial.
 ExperimentBlock.prototype.addbuttons = function(resptype, callback) {
-	if (resptype === "choice") resp_snippet = this.buttons;
-	else resp_snippet = this.singlebutton;
+	resp_snippet = resptype === "choice" ? this.buttons : this.singlebutton;
 	$('#query').html( resp_snippet );
 	$('input').click( callback );
 	$('#query').show();
 };
-ExperimentBlock.prototype.addprompt = function() {
-	$('#query').html( this.textprompt ).show();
+ExperimentBlock.prototype.addprompt = function(buttons) {
+	$('#query').html( (buttons ? this.buttonprompt : this.continueprompt) ).show();
 };
 ExperimentBlock.prototype.dotrial = function(stim) {
 	var that = this;
-	length = stim[4];
-	angle = stim[5];
-	label = stim[6];
+	length = stim[5];
+	angle = stim[6];
+	label = stim[7];
 	this.draw_tv( length, angle, label );
+	// this.addprompt();
 	// stimon = new Date().getTime();
 	setTimeout(
 		function() {
@@ -344,17 +345,21 @@ ExperimentBlock.prototype.finishblock = function() {
 /************************
 * INSTRUCTIONS OBJECT   *
 ************************/
-function InstructBlock() {
+function InstructBlock(screens) {
 	ExperimentBlock.call(this); // Call parent constructor
-	// this.items = screens;
+	this.items = screens;
 }
 
 InstructBlock.prototype = new ExperimentBlock();
 InstructBlock.prototype.constructor = InstructBlock;
 
-InstructBlock.prototype.items = [
+startinstructions = [
 	"instruct",
 	"instructfinal"
+];
+
+questionnaire = [
+	"postquestionnaire"
 ];
 
 // Show an instruction screen.
@@ -372,18 +377,18 @@ InstructBlock.prototype.dotrial = function(currentscreen) {
 // Flow control:
 InstructBlock.prototype.finishblock = function() {
 	// TODO: maybe add instruction quiz.
+	// currentBlock = new TrainBlock(trainstims);
 	currentBlock = new TrainBlock(trainstims);
+	console.log( currentBlock instanceof TrainBlock );
 	currentBlock.startblock();
 };
 
 // Record
 InstructBlock.prototype.recordtrial = function(currentscreen, rt) {
 	trialvals = subjinfo + ',' + ["INSTRUCT", currentscreen, rt];
-	console.log( trialvals );
 	for (var i=0; i<trialvals.length; i++) {
 		trialvals[i] = trialvals[i] + ",";
 	}
-	console.log( trialvals );
 	datastring = datastring.concat( trialvals, "\n" );
 };
 
@@ -393,7 +398,7 @@ InstructBlock.prototype.recordtrial = function(currentscreen, rt) {
 
 function TrainBlock(stims) {
 	ExperimentBlock.call(this); // Call parent constructor
-    showpage( "test" );
+    showpage( "train" );
 	this.tvcanvas = Raphael(document.getElementById("stim"), tvcanvaswidth, tvcanvasheight );
 	this.items = stims;
 }
@@ -419,7 +424,8 @@ function TestBlock(stims) {
 }
 
 TestBlock.prototype.finishblock = function() {
-	givequestionnaire();
+	currentBlock = new InstructBlock(questionnaire);
+	currentBlock.startblock();
 };
 
 TestBlock.prototype = new ExperimentBlock();

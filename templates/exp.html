@@ -25,7 +25,7 @@
 					testobject = new TestPhase();
 					{% endif %}
 			    {% else %}
-				currentBlock = new InstructBlock();
+				currentBlock = new InstructBlock(startinstructions);
 				currentBlock.startblock();
 			    {% endif %}
 			}
