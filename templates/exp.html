@@ -51,11 +51,12 @@
 			    {% endif %}
 			}
 			blocks = [
-			    new InstructBlock( startinstructions ),
-			    new TrialBlock( trainstims ),
-			    new InstructBlock( testinstruct ),
-			    new TrialBlock( teststims ),
-			    new InstructBlock( questionnaire ),
+			    new InstructBlock( startinstructions.slice(0) ),
+                            new PreQuiz(),
+			    new TrialBlock( trainstims.slice(0) ),
+			    new InstructBlock( testinstruct.slice(0) ),
+			    new TrialBlock( teststims.slice(0) ),
+			    new InstructBlock( questionnaire.slice(0) ),
 			    ]
 			
 			runfun();

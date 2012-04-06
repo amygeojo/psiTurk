@@ -171,6 +171,44 @@ function draw_tv(paper, length, angle, channel) {
 	var tv = paper.image(tvImages[channel], tvx, tvy, tvwidth, tvheight);
 }
 
+// Form manipulation functions
+
+//  Returns the form contents as a mapping.
+function getFormFields () {
+    var fields = {};
+    
+    var extractfun = function(i, val) { 
+		var value;
+		if (this.id !== this.value) value = this.value; 
+		else value = this.checked;
+		fields[this.id] = value; 
+    };
+    
+	$('textarea').each( extractfun );
+	$('select').each( extractfun );
+	$('input').each( extractfun );
+    
+    return fields;
+}
+
+//  Writes the form ids and their responses to the datafile. 
+function recordFormFields () {
+    var fields = {};
+    
+    var extractfun = function(i, val) { 
+		var value;
+		if (this.id !== this.value) value = this.value; 
+		else value = this.checked;
+		datastring = datastring.concat( "\n", this.id, ":",  value);
+    };
+    
+	$('textarea').each( extractfun );
+	$('select').each( extractfun );
+	$('input').each( extractfun );
+
+    return fields;
+}
+
 
 // Data submission
 // NOTE: Ended up not using this.
@@ -380,7 +418,6 @@ InstructBlock.prototype.dotrial = function(currentscreen) {
 
 // Flow control:
 InstructBlock.prototype.finishblock = function() {
-	// TODO: Add instruction quiz.
     nextblock();
 };
 
@@ -417,6 +454,90 @@ TrialBlock.prototype.startblock = function() {
 // 	nextblock();
 // };
 
+/************************
+* PREQUIZ OBJECT   *
+************************/
+
+function PreQuiz() {
+	this.items = {
+		quiz: 'prequiz',
+		success: 'presuccess',
+		failure: 'prefail'
+	};
+}
+
+PreQuiz.prototype = new InstructBlock();
+PreQuiz.prototype.constructor = PreQuiz;
+
+PreQuiz.prototype.validate = function(fields) {
+    var missing = [];
+    // Blocks to criterion
+    if ( ! fields.knobs && 
+         ! fields.length && 
+         ! fields.screensize && 
+         ! fields.angle ) missing.push("features");
+    if ( ! fields.numchannels ) missing.push("numchannels");
+    if ( ! fields.tuneyes && ! fields.tuneno ) missing.push("tuned");
+    if ( ! fields.brokenyes && ! fields.brokenno ) missing.push("broken");
+    return missing;
+};
+
+PreQuiz.prototype.checkform = function(fields) {
+    var incorrect = [];
+    // Question: What aspects of the TV are important?
+    if (   fields.knobs || 
+         ! fields.length || 
+           fields.screensize || 
+         ! fields.angle ) incorrect.push("features");
+    // Question: how many channels are there?
+    if ( fields.numchannels !== "2" ) incorrect.push("numchannels");
+    // Question: Are all the TVs tuned to one of the channels?
+    if ( ! fields.tuneyes || 
+           fields.tuneno ) incorrect.push("tuned");
+    if ( ! fields.brokenyes || 
+           fields.brokenno ) incorrect.push("broken");
+    return incorrect;
+};
+
+// Show an instruction screen.
+PreQuiz.prototype.dotrial = function(currentscreen) {
+	var that = this;
+    console.log(currentscreen);
+	displayscreen( this.items['quiz'] );
+	var timestamp = new Date().getTime();
+	$('.continue').click( function() {
+		if ( that.validate( getFormFields() ).length > 0 ) {
+			$("#warning").text("Please fill out all the fields before continuing.");
+			return false;
+		}
+		var rt = (new Date().getTime()) - timestamp;
+		var fields = getFormFields();
+		var passed = that.checkform( fields ).length === 0;
+		that.recordtrial( "prequiz", (new Date().getTime())-timestamp, passed );
+		recordFormFields();
+		if ( passed ) {
+			showpage(that.items['success']);
+			$(".continue").click( function() { that.finishblock(); } );
+		} else {
+			showpage(that.items['failure']);
+			$(".continue").click( function() {
+				blocks = [ new InstructBlock( startinstructions.slice(0) ), new PreQuiz() ].concat(blocks);
+				that.finishblock();
+			});
+		}
+		return true;
+	});
+	return true;
+};
+
+// Flow control:
+PreQuiz.prototype.startblock = function() { 
+    this.dotrial();
+};
+PreQuiz.prototype.nexttrial = function() { };
+PreQuiz.prototype.finishblock = function() {
+    nextblock();
+};
 
 /*************
 * Finish up  *

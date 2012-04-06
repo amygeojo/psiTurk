@@ -1,0 +1,73 @@
+<div id="main" class="questionnaire prequiz">
+    <h1>Got everything?</h1>
+	<p>Before we move on, we want to make sure you've understood everything
+	we've told you so far. Be careful when you answer, because you'll need
+	to get each of these questions right to continue.</p>
+    <form id="theprequiz" action="debrief" method="post">
+        <table>
+            <tr class="question">
+                <td class="questiontext">
+                    How can the antennas be adjusted?
+                </td>
+                <td class="answer">
+                    <ul>
+                    {% set featoptions = [
+                                ("knobs", "The locations of the knobs."), 
+                                ("length", "The length of the antenna's bar."),
+                                ("screensize", "The size of the screen."), 
+                                ("angle", "The angle of the antenna's bar.")] %}
+                    {% for choice, text in featoptions %}
+                    <li><input type="checkbox" id="{{choice}}" name="features" value="{{choice}}">
+                    {{ text }}
+                    </input></li>
+                    {% endfor %}
+                </td>
+            </tr>
+            <tr class="question">
+                <td class="questiontext">
+                How many possible channels are there?
+                </td>
+                <td class="answer">
+                <input class="numchannels" id="numchannels" name="numchannels" type="number" min="0" />
+                </td>
+            </tr>
+            <tr class="question">
+                <td class="questiontext">
+                    Is every TV tuned to one of the channels?
+                </td>
+                <td class="answer">
+                    <ul>
+                    {% set changeOptions = [
+                                ("tuneyes", "Yes."), 
+                                ("tuneno", "No.")
+                                ] %}
+                    {% for choice, text in changeOptions %}
+                    <li><input type="radio" id="{{choice}}" name="alltuned" value="{{choice}}" >
+                    {{ text }}
+                    </input></li>
+                    {% endfor %}
+                    </ul>
+                </td>
+            </tr>
+            <tr class="question">
+                <td class="questiontext">
+                    Can the broken TVs in the training phase still help you?
+                <td class="answer">
+                    <ul>
+                    {% set changeOptions = [
+                                ("brokenyes", "Yes, they still provide me with an example of one of the two types of channels."),
+                                ("brokenno", "No, they are useless if I can't see one of the channels.")
+                                ] %}
+                    {% for choice, text in changeOptions %}
+                    <li><input type="radio" id="{{choice}}" name="broken" value="{{choice}}" >
+                    {{ text }}
+                    </input></li>
+                    {% endfor %}
+                    </ul>
+                </td>
+            </tr>
+        </table>
+            <p id="warning"></p>
+        <input type="button" class="continue" id="continue" value="Continue"></input>
+    </form>
+</div>

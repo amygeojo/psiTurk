@@ -375,6 +375,9 @@ def htmlSnippets():
 	"distribution",
         "instructfinal",
         "testinstruct",
+        "prequiz",
+        "prefail",
+        "presuccess"
     ]
     return dict( (name, render_template(name+".html")) for name in names )
 
