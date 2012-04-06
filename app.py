@@ -1,5 +1,4 @@
-#----------------------------
-# test from todd  - JOHN
+
 import os
 import datetime
 import logging
