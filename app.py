@@ -373,7 +373,8 @@ def htmlSnippets():
 	"antennalength",
 	"antennaangle",
 	"distribution",
-        "instructfinal"
+        "instructfinal",
+        "testinstruct",
     ]
     return dict( (name, render_template(name+".html")) for name in names )
 

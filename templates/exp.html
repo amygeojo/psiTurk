@@ -20,6 +20,10 @@
 			"distribution",
 			"instructfinal"
 		];
+                
+		var testinstruct = [
+			"testinstruct"
+		];
 		
 		var questionnaire = [
 			"postquestionnaire"
@@ -29,7 +33,6 @@
 		var pages = {{ pages|tojson|safe }};
 		var trainstims = {{ train|tojson|safe }};
 		var teststims = {{ test|tojson|safe }};
-                console.log( pages.intro );
 		
 		/*********************
 		* Get things started *
@@ -50,7 +53,9 @@
 			blocks = [
 			    new InstructBlock( startinstructions ),
 			    new TrialBlock( trainstims ),
+			    new InstructBlock( testinstruct ),
 			    new TrialBlock( teststims ),
+			    new InstructBlock( questionnaire ),
 			    ]
 			
 			runfun();
