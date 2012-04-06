@@ -238,12 +238,19 @@ function recordtesttrial (word, color, trialtype, resp, hit, rt ) {
 /********************
 * HTML snippets
 ********************/
-var pages = {};
 
 var showpage = function(pagename) {
 	$('body').html( pages[pagename] );
 };
 
+/**************************
+* Experiment flow control *
+**************************/
+
+function nextblock() {
+	currentBlock = blocks.shift();
+	currentBlock.startblock();
+}
 
 /********************
 * Experiment block object
@@ -344,6 +351,7 @@ ExperimentBlock.prototype.startblock = function() {
 };
 ExperimentBlock.prototype.finishblock = function() {
 	ExperimentBlock.prototype.blocknum += 1;
+    nextblock();
 };
 
 /************************
@@ -357,22 +365,10 @@ function InstructBlock(screens) {
 InstructBlock.prototype = new ExperimentBlock();
 InstructBlock.prototype.constructor = InstructBlock;
 
-startinstructions = [
-	"intro",
-	"antennaintro",
-	"antennalength",
-	"antennaangle",
-	"distribution",
-	"instructfinal"
-];
-
-questionnaire = [
-	"postquestionnaire"
-];
-
 // Show an instruction screen.
 InstructBlock.prototype.dotrial = function(currentscreen) {
 	var that = this;
+    console.log(currentscreen);
 	displayscreen( currentscreen );
 	var timestamp = new Date().getTime();
 	$('.continue').click( function() {
@@ -384,10 +380,8 @@ InstructBlock.prototype.dotrial = function(currentscreen) {
 
 // Flow control:
 InstructBlock.prototype.finishblock = function() {
-	// TODO: maybe add instruction quiz.
-	// currentBlock = new TrainBlock(trainstims);
-	currentBlock = new TrainBlock(trainstims);
-	currentBlock.startblock();
+	// TODO: Add instruction quiz.
+    nextblock();
 };
 
 // Record
@@ -400,43 +394,28 @@ InstructBlock.prototype.recordtrial = function(currentscreen, rt) {
 };
 
 /********************
-* TRAINING OBJECT   *
+* TRIAL OBJECT   *
 ********************/
 
-function TrainBlock(stims) {
+// This object is for a block of trials where participants are shown a stimulus
+// and queried about it.
+function TrialBlock(stims) {
 	ExperimentBlock.call(this); // Call parent constructor
-    showpage( "test" );
-	this.tvcanvas = Raphael(document.getElementById("stim"), tvcanvaswidth, tvcanvasheight );
 	this.items = stims;
 }
 
-TrainBlock.prototype = new ExperimentBlock();
-TrainBlock.prototype.constructor = TrainBlock;
+TrialBlock.prototype = new ExperimentBlock();
+TrialBlock.prototype.constructor = TrialBlock;
 
-TrainBlock.prototype.finishblock = function() {
-	currentBlock = new TestBlock(teststims);
-	currentBlock.startblock();
-};
-
-
-/********************
-* TEST OBJECT       *
-********************/
-
-function TestBlock(stims) {
-	ExperimentBlock.call(this); // Call parent constructor
+TrialBlock.prototype.startblock = function() { 
     showpage( "test" );
 	this.tvcanvas = Raphael(document.getElementById("stim"), tvcanvaswidth, tvcanvasheight );
-	this.items = stims;
-}
-
-TestBlock.prototype.finishblock = function() {
-	currentBlock = new InstructBlock(questionnaire);
-	currentBlock.startblock();
+	this.nexttrial(); 
 };
 
-TestBlock.prototype = new ExperimentBlock();
-TestBlock.prototype.constructor = TestBlock;
+// TrialBlock.prototype.finishblock = function() {
+// 	nextblock();
+// };
 
 
 /*************

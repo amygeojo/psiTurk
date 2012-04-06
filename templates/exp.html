@@ -11,6 +11,25 @@
 		// Subject info, including condition and counterbalance codes.
 		var subjid = {{subjnum}};
 		var subjinfo = {{subjinfo|tojson|safe}};
+
+		var startinstructions = [
+			"intro",
+			"antennaintro",
+			"antennalength",
+			"antennaangle",
+			"distribution",
+			"instructfinal"
+		];
+		
+		var questionnaire = [
+			"postquestionnaire"
+		];
+		
+		// Load resources then run the exp
+		var pages = {{ pages|tojson|safe }};
+		var trainstims = {{ train|tojson|safe }};
+		var teststims = {{ test|tojson|safe }};
+                console.log( pages.intro );
 		
 		/*********************
 		* Get things started *
@@ -25,15 +44,15 @@
 					testobject = new TestPhase();
 					{% endif %}
 			    {% else %}
-				currentBlock = new InstructBlock(startinstructions);
-				currentBlock.startblock();
+                                nextblock();
 			    {% endif %}
 			}
+			blocks = [
+			    new InstructBlock( startinstructions ),
+			    new TrialBlock( trainstims ),
+			    new TrialBlock( teststims ),
+			    ]
 			
-			// Load resources then run the exp
-			pages = {{ pages|tojson|safe }};
-			trainstims = {{ train|tojson|safe }};
-			teststims = {{ test|tojson|safe }};
 			runfun();
 		});
 		</script>
