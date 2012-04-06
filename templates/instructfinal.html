@@ -1,11 +1,34 @@
+{% extends "instruct.html" %}
 
-<div class="instruct" id="main">
-	<h1>Instructions</h1>
-	<p>These are some later instructions.
-	<div style="text-align: center;">
-		<p>Your task will be to something something something.
-		<div class="instructions">When you're ready to begin, press <strong>Begin</strong>.</div>
+{% block style %}
+{{ super() }}
+{% endblock %}
 
-	<input type="button" class="continue" id="Next" value="Begin">
-</div>
+{% block title %}
+TV Repair Shop
+{% endblock %}
 
+{% block content %}
+<p>
+In summary, these are the basics of the task:
+</p>
+<ul>
+    <li>All the TVs in this town are tuned to <strong>CH1</strong> or <strong>CH2</strong>.
+    <li>People tune their TVs to pick up the two channels by adjusting the
+    <ul>
+        <li><strong>Length</strong> of the bar and
+        <li>Its <strong>Angle</strong>.
+    </ul>
+    <li>This means there will be two different "types" of antennas corresponding to the two channels.
+</ul>
+
+<p>At first you will see many examples of TV antennas. After viewing each, click
+continue to move on to the next one. Afterwards, you will be given some new
+broken TVs and be asked to divide them into two groups based on which channel
+they pick up.</p>
+
+{% endblock %}
+
+{# 
+ vim: ft=htmljinja  
+#}

@@ -1,0 +1,32 @@
+{% extends "instruct.html" %}
+
+{% block style %}
+{{ super() }}
+{% endblock %}
+
+{% block content %}
+<p>In ths study, you will be asked to pretend you are a curious worker in a
+television repair shop in a small town. You see many TVs go by every day. The
+TVs look like this:</p>
+<img class="exampletv" style="margin: 0 auto" src="static/images/tvnan.png">
+
+<p>In this town, there are two channels TVs can be tuned to:
+<strong>CH1</strong> and <strong>CH2</strong>. When the TVs are able to pick
+them up, they look like this:
+
+<div style="margin: 0 auto">
+    <img class="exampletv" src="static/images/tv0.png">
+    <img class="exampletv" src="static/images/tv1.png">
+</div>
+
+<p>
+Your job will be to determine how people are able to pick up these two channels
+by adjusting simple antennas, as we'll explain on the next screen.
+</p>
+
+
+{% endblock %}
+
+{# 
+ vim: ft=htmljinja  
+#}

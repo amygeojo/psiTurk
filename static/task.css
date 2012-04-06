@@ -27,13 +27,17 @@ strong {
 	color: #661111;
 }
 
+ul {
+	text-align: left;
+}
+
 /* Instruction styles */
 #main {
 	background: white;
 	width: 800px;
 	height: 650px;
-	margin: 10px auto;
-	padding: 20px;
+	margin: 20px auto;
+	padding: 0 30px;
 	overflow: hidden;
 }
 
@@ -187,7 +191,7 @@ input[type="number"] {
     font-size: 70%;
     text-align: left;
 }
-.questionnaire p, li {
+.questionnaire p, .questionnaire li {
 	font-size: 150%;
 }
 
@@ -249,6 +253,7 @@ input[type="number"] {
 .questionnaire hr {
     border-bottom: 1px solid #bbbbff;
 }
+
 
 .questionnaire ul {
 	list-style-type: none;

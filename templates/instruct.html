@@ -1,11 +1,20 @@
 
+<style>
+    {% block style %} 
+    .exampletv {
+        width: 123px;
+    }
+    {% endblock %}
+</style>
+
 <div class="instruct" id="main">
-	<h1>Instructions</h1>
-	<p>These are some instructions.
-	<div style="text-align: center;">
-		<p>Your task will be to something something something.
-		<div class="instructions">When you're ready to continue, press <strong>Next</strong>.</div>
+    <h1>{% block title %}Welcome to the TV repair shop!{% endblock %}</h1>
+        {% block content %} {% endblock %}
+            <div class="instructions">When you're ready to continue, press <strong>Next</strong>.</div>
 
 	<input type="button" class="continue" id="Next" value="Next">
 </div>
 
+{# 
+ vim: ft=htmljinja  
+#}

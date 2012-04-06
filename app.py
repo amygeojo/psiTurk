@@ -368,7 +368,11 @@ def htmlSnippets():
     names = [
         "postquestionnaire",
         "test",
-        "instruct",
+        "intro",
+	"antennaintro",
+	"antennalength",
+	"antennaangle",
+	"distribution",
         "instructfinal"
     ]
     return dict( (name, render_template(name+".html")) for name in names )

@@ -148,6 +148,29 @@ function raphael_line( x1, y1, x2, y2 ) {
 	return pathstring;
 }
 
+function draw_tv(paper, length, angle, channel) {
+	// TV params
+	var angle_radiens = (angle / 180) * Math.PI,
+	    xdelta = length * Math.cos( angle_radiens ),
+	    ydelta = length * Math.sin( angle_radiens );
+	
+	// Attributes
+	var strokewidth = 3,
+	    antenna_attr = {"stroke-width": strokewidth},
+	    stem_attr = {"stroke-width": strokewidth,
+	                 "stroke": "#999"};
+	
+	var stem = paper.
+		path(raphael_line(stemx, stemy1, stemx, stemy2)).
+		attr(stem_attr);
+    
+	var antenna = paper.
+		path(raphael_line(stemx-xdelta, stemy2-ydelta,
+						  stemx+xdelta, stemy2+ydelta)).
+		attr(antenna_attr);
+	var tv = paper.image(tvImages[channel], tvx, tvy, tvwidth, tvheight);
+}
+
 
 // Data submission
 // NOTE: Ended up not using this.
@@ -238,37 +261,18 @@ ExperimentBlock.prototype.acknowledgment = '<p>Thanks for your response!</p>';
 ExperimentBlock.prototype.buttonprompt = '<p id="prompt">Which channel do you think this TV picks up?</p>';
 ExperimentBlock.prototype.buttons = ExperimentBlock.prototype.buttonprompt + 
 		'<div id="inputs">\
-				<input type="button" id="ch1" value="ch1">\
-				<input type="button" id="ch2" value="ch2">\
+				<input type="button" id="ch1" value="CH1">\
+				<input type="button" id="ch2" value="CH2">\
 		</div>';
 ExperimentBlock.prototype.continueprompt = '<p id="prompt">Please press continue to acknowledge.</p>';
 ExperimentBlock.prototype.singlebutton = ExperimentBlock.prototype.continueprompt + 
 		'<div id="inputs">\
-				<input type="button" id="continue" value="continue">\
+				<input type="button" id="continue" value="Continue">\
 		</div>';
 
-// Draws a TV on the Raphael paper:
+// Draws a TV on the object's paper:
 ExperimentBlock.prototype.draw_tv = function(length, angle, channel) {
-	// TV params
-	var angle_radiens = (angle / 180) * Math.PI,
-	    xdelta = length * Math.cos( angle_radiens ),
-	    ydelta = length * Math.sin( angle_radiens );
-	
-	// Attributes
-	var strokewidth = 3,
-	    antenna_attr = {"stroke-width": strokewidth},
-	    stem_attr = {"stroke-width": strokewidth,
-	                 "stroke": "#999"};
-	
-	var stem = this.tvcanvas.
-		path(raphael_line(stemx, stemy1, stemx, stemy2)).
-		attr(stem_attr);
-    
-	var antenna = this.tvcanvas.
-		path(raphael_line(stemx-xdelta, stemy2-ydelta,
-						  stemx+xdelta, stemy2+ydelta)).
-		attr(antenna_attr);
-	var tv = this.tvcanvas.image(tvImages[channel], tvx, tvy, tvwidth, tvheight);
+    draw_tv( this.tvcanvas, length, angle, channel );
 };
 
 // Clears off the paper.
@@ -354,7 +358,11 @@ InstructBlock.prototype = new ExperimentBlock();
 InstructBlock.prototype.constructor = InstructBlock;
 
 startinstructions = [
-	"instruct",
+	"intro",
+	"antennaintro",
+	"antennalength",
+	"antennaangle",
+	"distribution",
 	"instructfinal"
 ];
 
@@ -379,7 +387,6 @@ InstructBlock.prototype.finishblock = function() {
 	// TODO: maybe add instruction quiz.
 	// currentBlock = new TrainBlock(trainstims);
 	currentBlock = new TrainBlock(trainstims);
-	console.log( currentBlock instanceof TrainBlock );
 	currentBlock.startblock();
 };
 
@@ -398,7 +405,7 @@ InstructBlock.prototype.recordtrial = function(currentscreen, rt) {
 
 function TrainBlock(stims) {
 	ExperimentBlock.call(this); // Call parent constructor
-    showpage( "train" );
+    showpage( "test" );
 	this.tvcanvas = Raphael(document.getElementById("stim"), tvcanvaswidth, tvcanvasheight );
 	this.items = stims;
 }
