@@ -1,0 +1,23 @@
+
+<style>
+    {% block style %} 
+    .exampletv {
+        width: 123px;
+    }
+    .exampletvs {
+        width: 280px;
+    }
+    {% endblock %}
+</style>
+
+<div class="instruct" id="main">
+    <h1>{% block title %}Welcome to the TV repair shop!{% endblock %}</h1>
+        {% block content %} {% endblock %}
+            <div class="instructions">When you're ready to continue, press <strong>Next</strong>.</div>
+
+	<input type="button" class="continue" id="Next" value="Next">
+</div>
+
+{# 
+ vim: ft=htmljinja  
+#}
