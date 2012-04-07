@@ -390,7 +390,6 @@ ExperimentBlock.prototype.startblock = function() {
 	this.nexttrial(); 
 };
 ExperimentBlock.prototype.finishblock = function() {
-	ExperimentBlock.prototype.blocknum += 1;
     nextblock();
 };
 
@@ -443,6 +442,7 @@ TrialBlock.prototype = new ExperimentBlock();
 TrialBlock.prototype.constructor = TrialBlock;
 
 TrialBlock.prototype.startblock = function() { 
+	TrialBlock.prototype.blocknum += 1;
     showpage( "test" );
 	this.tvcanvas = Raphael(document.getElementById("stim"), tvcanvaswidth, tvcanvasheight );
 	this.nexttrial(); 
