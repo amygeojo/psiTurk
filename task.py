@@ -2,6 +2,10 @@
 import numpy as np
 import numpy.random as nprand
 
+VERSION = 1.0
+NCONDS = 1
+NCOUNTERS = 2
+
 def bounded(x, bounds=[0,1]):
     return x >= bounds[0] and x <= bounds[1]
 
@@ -208,8 +212,10 @@ class tvTask:
 def condition_builder(condnum, counternum):
     maxlength = 120
     maxangle = 90
-    anglerange = [70, 90][condnum // 2]
-    lengthrange = [70, 100][condnum % 2]
+    #anglerange = [70, 90][condnum // 2]
+    #lengthrange = [70, 100][condnum % 2]
+    anglerange = 80
+    lengthrange = 100
     angleoffset = nprand.randint(0, maxangle-anglerange+1) + maxangle*nprand.randint(2)
     lengthoffset = 50
     swapcorners = [False, True][nprand.randint(2)]

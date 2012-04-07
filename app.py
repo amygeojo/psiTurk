@@ -36,7 +36,7 @@ logging.basicConfig( filename=logfilepath, level=loglevel )
 
 # constants
 DEPLOYMENT_ENV = config.getint('User Preferences', 'loglevel')
-CODE_VERSION = config.get('Task Parameters', 'code_version')
+CODE_VERSION = task.VERSION
 
 # Database configuration and constants
 DATABASE = config.get('Database Parameters', 'database_url')
@@ -228,10 +228,11 @@ def get_random_condition(session):
     or any tasks not finished that were started in the last cutoff_time
     minutes, as specified in the cutoff_time variable in the config file.
     """
+    
     cutofftime = datetime.timedelta(minutes=-config.getint('Server Parameters', 'cutoff_time'))
     starttime = datetime.datetime.now() + cutofftime
     
-    numconds = config.getint('Task Parameters', 'num_conds')
+    numconds = task.NCONDS
     
     partconds = session.query(Participant.cond).\
                 filter(Participant.codeversion == CODE_VERSION).\
@@ -244,7 +245,7 @@ def get_random_condition(session):
 def get_random_counterbalance(session):
     starttime = datetime.datetime.now() + datetime.timedelta(minutes=-30)
     session = Session()
-    numcounts = config.getint('Task Parameters', 'num_counters')
+    numcounts = task.NCOUNTERS
     partcounts = session.query(Participant.counterbalance).\
                  filter(Participant.codeversion == CODE_VERSION).\
                  filter(or_(Participant.endhit != None, 
