@@ -42,8 +42,7 @@ function imagepreload(src)
  * From Fotiman on this forum:
  * http://www.webmasterworld.com/javascript/3484761.htm
  */ 
-function substitute(str, arr) 
-{ 
+function substitute(str, arr) { 
 	var i, pattern, re, n = arr.length; 
 	for (i = 0; i < n; i++) { 
 		pattern = "\\{" + i + "\\}"; 
@@ -263,14 +262,12 @@ var responsedata = [],
     datastring = "",
     lastperfect = false;
 
-// Data handling functions
-function recordtesttrial (word, color, trialtype, resp, hit, rt ) {
-	trialvals = subjinfo +  [currenttrial,  "TEST", word, color, hit, resp, hit, rt];
-	for (var i=0; i<trialvals.length-1; i++) {
-		trialvals[i] = trialvals[i] + ",";
-	}
+/********************
+* Trial recording
+********************/
+function recordtesttrial(currentscreen, rt) {
+	var trialvals = subjinfo + ',' + ["INSTRUCT", currentscreen, rt];
 	datastring = datastring.concat( trialvals, "\n" );
-	currenttrial++;
 }
 
 /********************
@@ -286,8 +283,13 @@ var showpage = function(pagename) {
 **************************/
 
 function nextblock() {
+    if (blocks.length === 0) {
+		givequestionnaire();
+		return false;
+	}
 	currentBlock = blocks.shift();
 	currentBlock.startblock();
+	return true;
 }
 
 /********************
@@ -422,13 +424,8 @@ InstructBlock.prototype.finishblock = function() {
 };
 
 // Record
-// TODO: make sure all these trial recorders are working correctly.
 InstructBlock.prototype.recordtrial = function(currentscreen, rt) {
-	var trialvals = subjinfo + ',' + ["INSTRUCT", currentscreen, rt];
-	//for (var i=0; i<trialvals.length; i++) {
-	//	trialvals[i] = trialvals[i] + ",";
-	//}
-	datastring = datastring.concat( trialvals, "\n" );
+    recordtesttrial(currentscreen, rt);
 };
 
 /********************
@@ -546,8 +543,8 @@ PreQuiz.prototype.finishblock = function() {
 var givequestionnaire = function() {
 	var timestamp = new Date().getTime();
 	showpage('postquestionnaire');
-	recordinstructtrial( "postquestionnaire", (new Date().getTime())-timestamp );
 	$("#continue").click(function () {
+        recordtesttrial( "postquestionnaire", (new Date().getTime())-timestamp );
 		cleanup();
 		submitquestionnaire();
 	});
@@ -560,7 +557,7 @@ var submitquestionnaire = function() {
 	});
 	$('select').each( function(i, val) {
 		datastring = datastring.concat( "\n", this.id, ":",  this.value);
-	});
+        });
 	insert_hidden_into_form(0, "subjid", subjid );
 	insert_hidden_into_form(0, "data", datastring );
 	$('form').submit();
