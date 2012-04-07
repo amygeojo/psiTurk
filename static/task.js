@@ -449,8 +449,7 @@ TrialBlock.prototype.startblock = function() {
 };
 
 // TrialBlock.prototype.finishblock = function() {
-// 	nextblock();
-// };
+// 	nextblock(); // };
 
 /************************
 * PREQUIZ OBJECT   *
@@ -515,6 +514,7 @@ PreQuiz.prototype.dotrial = function(currentscreen) {
 		recordFormFields();
 		if ( passed ) {
 			showpage(that.items['success']);
+			startTask();
 			$(".continue").click( function() { that.finishblock(); } );
 		} else {
 			showpage(that.items['failure']);
