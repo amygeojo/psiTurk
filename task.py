@@ -46,7 +46,7 @@ class tvTask:
                  swapcorners = None, 
                  swapidentity = None,
                  angleoffset = None,
-                 lengthoffset = 30,
+                 lengthoffset = 50,
                  anglerange = 60,
                  lengthrange = 120):
         
@@ -72,8 +72,6 @@ class tvTask:
         
         self.checkinputs()
         
-        self.lengthoffset = 30
-        
         # Inferred parameters
         self.bounds = {'length': [self.lengthoffset, self.lengthrange+self.lengthoffset], 
                        'angle': [self.angleoffset, self.anglerange+self.angleoffset]}
@@ -85,7 +83,6 @@ class tvTask:
     
     # Check various properties of the inputs
     def checkinputs(self):
-        print self.nbasis
         assert self.nbasis % 28 == 0
         assert self.order in ["interspersed"]  # I'm sure I'll try out more in the future
         assert self.testform in ["bimodal", "grid", "mixed"] 
@@ -212,15 +209,15 @@ def condition_builder(condnum, counternum):
     maxlength = 120
     maxangle = 90
     anglerange = [70, 90][condnum // 2]
-    lengthrange = [90, 120][condnum % 2]
+    lengthrange = [70, 100][condnum % 2]
     angleoffset = nprand.randint(0, maxangle-anglerange+1) + maxangle*nprand.randint(2)
-    lengthoffset = nprand.randint(0, maxlength-anglerange+1)
+    lengthoffset = 50
     swapcorners = [False, True][nprand.randint(2)]
     swapidentity = [False, True][nprand.randint(2)]
     axis = ["size", "angle"][counternum]
     return dict(
          order = "interspersed",
-         nbasis = 280,
+         nbasis = 112,
          nlab = 0,
          ntest = 50,
          testform = "bimodal",

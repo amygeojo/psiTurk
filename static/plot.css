@@ -1,0 +1,100 @@
+
+body {
+    font-family: Helvetica, Sans-Serif;
+    background: #dde;
+}
+
+svg {
+  font: 10px sans-serif;
+}
+
+#main {
+    margin: 0 auto;
+    display: block;
+    width: 1400px;
+}
+
+.box {
+    float: left;
+    padding: 10px;
+    margin: 15px;
+    border: 4px solid black;
+    background: white;
+}
+
+.axis {
+  shape-rendering: crispEdges;
+}
+
+.axis line {
+  stroke: #ddd;
+  stroke-width: .5px;
+}
+
+.axis path {
+  display: none;
+}
+
+rect.extent {
+  fill: #000;
+  fill-opacity: .125;
+  stroke: #fff;
+}
+
+rect.frame {
+  fill: #fff;
+  fill-opacity: .7;
+  stroke: #aaa;
+}
+
+circle {
+  fill: #ccc;
+  fill-opacity: .5;
+}
+
+.cell text {
+  pointer-events: none;
+}
+
+.broken {
+  fill: black;
+}
+
+.ch1 {
+  fill: #f33;
+}
+
+.ch2 {
+  fill: #33f;
+}
+
+.one {
+    fill: #ff9;
+}
+.two {
+    fill: #f9f;
+}
+.three {
+    fill: #9ff;
+}
+.four {
+    fill: #f99;
+}
+.five {
+    fill: #9f9;
+}
+.six {
+    fill: #99f;
+}
+.seven {
+    fill: green;
+}
+.eight {
+    fill: blue;
+}
+.nine {
+    fill: purple;
+}
+.ten {
+    fill: orange;
+}

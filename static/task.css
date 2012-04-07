@@ -35,7 +35,7 @@ ul {
 #main {
 	background: white;
 	width: 800px;
-	height: 680px;
+	min-height: 680px;
 	margin: 20px auto;
 	padding: 10px 30px;
 	overflow: show;

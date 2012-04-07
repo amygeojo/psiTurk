@@ -422,11 +422,12 @@ InstructBlock.prototype.finishblock = function() {
 };
 
 // Record
+// TODO: make sure all these trial recorders are working correctly.
 InstructBlock.prototype.recordtrial = function(currentscreen, rt) {
-	trialvals = subjinfo + ',' + ["INSTRUCT", currentscreen, rt];
-	for (var i=0; i<trialvals.length; i++) {
-		trialvals[i] = trialvals[i] + ",";
-	}
+	var trialvals = subjinfo + ',' + ["INSTRUCT", currentscreen, rt];
+	//for (var i=0; i<trialvals.length; i++) {
+	//	trialvals[i] = trialvals[i] + ",";
+	//}
 	datastring = datastring.concat( trialvals, "\n" );
 };
 

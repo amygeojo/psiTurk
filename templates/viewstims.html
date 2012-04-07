@@ -1,0 +1,158 @@
+<!doctype html>
+
+<head>
+    <script src="http://mbostock.github.com/d3/d3.v2.js?2.8.1" type="text/javascript"> </script>
+    <style type="text/css">
+        @import url("static/plot.css");
+    </style>
+</head>
+<body>
+    <div id="main">
+        <div class="box">
+            <h1>Training items:</h1>
+            <div id="train"></div>
+        </div>
+        <div class="box">
+            <h1>Test items:</h1>
+            <div id="test"></div>
+        </div>
+    </div>
+    <script>
+        var size = 100, anglesize = 200,
+            padding = 19.5;
+        
+        d3.json("http://puncture.psych.nyu.edu:5001/items?cond=3&count=0",
+            function(ret) {
+                makeplots( ret.train, "#train" );
+                makeplots( ret.test, "#test" );
+            });
+
+        function makeplots(stims, divid) {
+            var traits = ["bimod", "unimod", "length", "angle"];
+            var n = traits.length;
+            var x = {}, y={};
+            traits.forEach( function(trait) {
+                var value = function(d) { return d[trait] };
+                // domain = [d3.min(stims, value), d3.max(stims, value)],
+                if (trait == "unimod" || trait == "bimod")  {
+                    domain = [0,1]
+                    xrange = [ padding/2, size - padding/2 ];
+                    yrange = [ padding/2, size - padding/2 ].slice().reverse();
+                }
+                if ( trait == "angle" ) {
+                  domain = [0,180]
+                  xrange = [ padding/2, anglesize - padding/2 ];
+                  yrange = [ padding/2, anglesize - padding/2 ].slice().reverse();
+                }
+                if ( trait == "length" ) {
+                  // domain = [d3.min(stims, value), d3.max(stims, value)],
+                  domain = [50,150]
+                  xrange = [ padding/2, size - padding/2 ];
+                  yrange = [ padding/2, size - padding/2 ].slice().reverse();
+                }
+                x[trait] = d3.scale.linear().domain(domain).range(xrange)
+                y[trait] = d3.scale.linear().domain(domain).range(yrange)
+            });
+            
+            
+            // Axes
+            var axis = d3.svg.axis()
+                .ticks(5)
+                // .ticksSize(size * n);
+            
+            // Brush
+            var brush = d3.svg.brush()
+                .on("brushstart", brushstart)
+                .on("brush", brush)
+                .on("brushend", brushend);
+            
+            var svg = d3.select(divid).append("svg")
+                .attr("width", size * (n-1) + anglesize + padding)
+                .attr("height", size * (n-1) + anglesize + padding);
+            
+            svg.selectAll("g.x.axis")
+                .data(traits)
+              .enter().append("g")
+                .attr("class", "x axis")
+                .attr("transform", function(d, i) { return "translate(" + i * (d.channel=="angle" ? anglesize : size ) + ",0)"; })
+                .each( function(d) { d3.select(this).call(axis.scale(x[d]).orient("bottom")); });
+
+            svg.selectAll("g.y.axis")
+                .data(traits)
+              .enter().append("g")
+                .attr("class", "y axis")
+                .attr("transform", function(d, i) { return "translate(0," + i * (d.channel=="angle" ? anglesize : size ) + ")"; })
+                .each( function(d) { d3.select(this).call(axis.scale(y[d]).orient("right")); });
+            
+            var cell = svg.selectAll("g.cell")
+                .data(cross( traits, traits ))
+              .enter().append("g")
+                .attr("class", "cell")
+                .attr("transform", function(d) { return "translate(" + d.i * (d.channel=="angle" ? anglesize : size ) + "," + d.j * (d.channel=="angle" ? anglesize : size ) + ")"; })
+                .each( plot );
+        
+            cell.filter( function(d) { return d.i == d.j; }).append("text")
+                .attr("x", padding)
+                .attr("y", padding)
+                .attr("dy", ".71em")
+                .attr("x", padding)
+                .text(function(d) { return d.x; } );
+            
+            function plot(p) {
+                console.log( p )
+              var cell = d3.select(this);
+
+              // Plot frame.
+              cell.append("rect")
+                  .attr("class", "frame")
+                  .attr("x", padding / 2)
+                  .attr("y", padding / 2)
+                  .attr("width", (p.x=="angle" ? anglesize : size) - padding)
+                  .attr("height", (p.y=="angle" ? anglesize : size) - padding);
+
+              // Plot dots.
+              cell.selectAll("circle")
+                  .data(stims)
+                .enter().append("circle")
+                  .attr("class", function(d) { return d.rect; })
+                  .attr("cx", function(d) { return x[p.x](d[p.x]); })
+                  .attr("cy", function(d) { return y[p.y](d[p.y]); })
+                  .attr("r", 3);
+
+              // Plot brush.
+              cell.call(brush.x(x[p.x]).y(y[p.y]));
+            }
+
+            // Clear the previously-active brush, if any.
+            function brushstart(p) {
+              if (brush.data !== p) {
+                cell.call(brush.clear());
+                brush.x(x[p.x]).y(y[p.y]).data = p;
+              }
+            }
+
+            // Highlight the selected circles.
+            function brush(p) {
+              var e = brush.extent();
+              svg.selectAll("circle").attr("class", function(d) {
+                return e[0][0] <= d[p.x] && d[p.x] <= e[1][0]
+                    && e[0][1] <= d[p.y] && d[p.y] <= e[1][1]
+                    ? d.channel : null;
+              });
+            }
+
+            // If the brush is empty, select all circles.
+            function brushend() {
+              if (brush.empty()) svg.selectAll("circle").attr("class", function(d) {
+                return d.channel;
+              });
+            }
+
+            function cross(a, b) {
+              var c = [], n = a.length, m = b.length, i, j;
+              for (i = -1; ++i < n;) for (j = -1; ++j < m;) c.push({x: a[i], i: i, y: b[j], j: j});
+              return c;
+            }
+        }
+    </script>
+</body>

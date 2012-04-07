@@ -2,12 +2,12 @@
 import os
 import datetime
 import logging
-from functools import wraps
+from functools import wraps, update_wrapper
 from random import choice
 from ConfigParser import ConfigParser
 
 # Importing flask
-from flask import Flask, render_template, request, Response, make_response
+from flask import Flask, render_template, request, Response, make_response, jsonify, current_app
 
 # Sqlalchemy imports
 from sqlalchemy import create_engine
@@ -369,10 +369,10 @@ def htmlSnippets():
         "postquestionnaire",
         "test",
         "intro",
-	"antennaintro",
-	"antennalength",
-	"antennaangle",
-	"distribution",
+        "antennaintro",
+        "antennalength",
+        "antennaangle",
+        "distribution",
         "instructfinal",
         "testinstruct",
         "prequiz",
@@ -432,6 +432,7 @@ def start_exp():
     
     taskparams = task.condition_builder(subj_cond, subj_counter)
     taskobject = task.tvTask( ** taskparams )
+    print "Ntrain items: ", len(taskobject.train)
     
     return render_template('exp.html',
                            subjnum = myid, 
@@ -439,6 +440,80 @@ def start_exp():
                            pages = htmlSnippets(), 
                            train = taskobject.train,
                            test = taskobject.test)
+
+
+def crossdomain(origin=None, methods=None, headers=None,
+                max_age=21600, attach_to_all=True,
+                automatic_options=True):
+    if methods is not None:
+        methods = ', '.join(sorted(x.upper() for x in methods))
+    if headers is not None and not isinstance(headers, basestring):
+        headers = ', '.join(x.upper() for x in headers)
+    if not isinstance(origin, basestring):
+        origin = ', '.join(origin)
+    if isinstance(max_age, datetime.timedelta):
+        max_age = max_age.total_seconds()
+
+    def get_methods():
+        if methods is not None:
+            return methods
+
+        options_resp = current_app.make_default_options_response()
+        return options_resp.headers['allow']
+
+    def decorator(f):
+        def wrapped_function(*args, **kwargs):
+            if automatic_options and request.method == 'OPTIONS':
+                resp = current_app.make_default_options_response()
+            else:
+                resp = make_response(f(*args, **kwargs))
+            if not attach_to_all and request.method != 'OPTIONS':
+                return resp
+
+            h = resp.headers
+
+            h['Access-Control-Allow-Origin'] = origin
+            h['Access-Control-Allow-Methods'] = get_methods()
+            h['Access-Control-Max-Age'] = str(max_age)
+            if headers is not None:
+                h['Access-Control-Allow-Headers'] = headers
+            return resp
+
+        f.provide_automatic_options = False
+        return update_wrapper(wrapped_function, f)
+    return decorator
+
+def procitems(items):
+    import numpy as np
+    ret = []
+    for item in items:
+        bimod = item[1]
+        unimod = item[2]
+        abstractChannel = item[3]
+        rectname = {0:"one", 1:"two", 2:"three", 3:"four", 4:"five", 5:"six", 6:"seven", 7:"eight", 8:"nine", 9:"ten"}[item[4]]
+        length = item[5]
+        angle = item[6]
+        if np.isnan(abstractChannel):
+            abstractChannel = 'nolab'
+        else:
+            abstractChannel = float( abstractChannel )
+        channel = item[7]
+        ret.append( dict(
+            bimod = bimod,
+            unimod = unimod,
+            length = length,
+            angle = angle,
+            abstractChannel = abstractChannel,
+            channel = channel,
+            rect = rectname))
+    return ret
+
+@app.route('/items')
+@crossdomain(origin='*')
+def showitems():
+    taskparams = task.condition_builder(int(request.args['cond']), int(request.args['count']))
+    thetask = task.tvTask( **taskparams )
+    return jsonify( train=procitems(thetask.train), test=procitems(thetask.test) )
 
 @app.route('/inexp', methods = ['POST'])
 def enterexp():
@@ -633,3 +708,4 @@ if __name__ == '__main__':
     print "Starting webserver."
     app.run(debug=config.getboolean('Server Parameters', 'debug'), host='0.0.0.0', port=config.getint('Server Parameters', 'port'))
 
+# vim: expandtab sw=4 ts=4
