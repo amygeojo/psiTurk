@@ -305,7 +305,7 @@ ExperimentBlock.prototype.blocknum = 0;
 
 // HTML snippets
 ExperimentBlock.prototype.acknowledgment = '<p>Thanks for your response!</p>';
-ExperimentBlock.prototype.buttonprompt = '<p id="prompt">Which channel do you think this TV picks up?</p>';
+ExperimentBlock.prototype.buttonprompt = '<p id="prompt">Which channel do you think this TV picks up?  Try to be consistent.</p>';
 ExperimentBlock.prototype.buttons = ExperimentBlock.prototype.buttonprompt + 
 		'<div id="inputs">\
 				<input type="button" id="ch1" value="CH1">\
@@ -474,7 +474,12 @@ PreQuiz.prototype.validate = function(fields) {
          ! fields.screensize && 
          ! fields.angle ) missing.push("features");
     if ( ! fields.numchannels ) missing.push("numchannels");
-    if ( ! fields.tuneyes && ! fields.tuneno ) missing.push("tuned");
+    if ( ! fields.tuneyes && ! fields.tuneno ) missing.push("alltuned");
+    if ( ! fields.antbrokenyes && ! fields.antbrokenno ) missing.push("antbroken");
+    if ( ! fields.goalwatch &&
+         ! fields.goaldesign &&
+         ! fields.goalcat &&
+         ! fields.goalfix ) missing.push("goal");
     if ( ! fields.brokenyes && ! fields.brokenno ) missing.push("broken");
     return missing;
 };
@@ -490,7 +495,12 @@ PreQuiz.prototype.checkform = function(fields) {
     if ( fields.numchannels !== "2" ) incorrect.push("numchannels");
     // Question: Are all the TVs tuned to one of the channels?
     if ( ! fields.tuneyes || 
-           fields.tuneno ) incorrect.push("tuned");
+           fields.tuneno ) incorrect.push("alltuned");
+   if ( ! fields.antbrokenyes || fields.antbrokenno ) missing.push("antbroken");
+   if ( fields.goalwatch ||
+        fields.goaldesign ||
+        !fields.goalcat ||
+        fields.goalfix ) missing.push("goal");
     if ( ! fields.brokenyes || 
            fields.brokenno ) incorrect.push("broken");
     return incorrect;

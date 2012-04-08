@@ -7,7 +7,7 @@
         <table>
             <tr class="question">
                 <td class="questiontext">
-                    How can the antennas be adjusted?
+                    How can resident adjust which channel their TV picks up? (check all that apply)
                 </td>
                 <td class="answer">
                     <ul>
@@ -25,7 +25,7 @@
             </tr>
             <tr class="question">
                 <td class="questiontext">
-                How many possible channels are there?
+                How many possible channels are there in the town?
                 </td>
                 <td class="answer">
                 <input class="numchannels" id="numchannels" name="numchannels" type="number" min="0" />
@@ -33,7 +33,7 @@
             </tr>
             <tr class="question">
                 <td class="questiontext">
-                    Is every TV tuned to one of the channels?
+                    Is every TV purposefully tuned to one of the channels?
                 </td>
                 <td class="answer">
                     <ul>
@@ -51,12 +51,52 @@
             </tr>
             <tr class="question">
                 <td class="questiontext">
-                    Can the broken TVs in the training phase still help you?
+                    Are the antennas ever broken on the TVs?
+                </td>
                 <td class="answer">
                     <ul>
                     {% set changeOptions = [
-                                ("brokenyes", "Yes, they still provide me with an example of one of the two types of channels."),
-                                ("brokenno", "No, they are useless if I can't see one of the channels.")
+                                ("antbrokenyes", "Yes."), 
+                                ("antbrokenno", "No.")
+                                ] %}
+                    {% for choice, text in changeOptions %}
+                    <li><input type="radio" id="{{choice}}" name="antbroken" value="{{choice}}" >
+                    {{ text }}
+                    </input></li>
+                    {% endfor %}
+                    </ul>
+                </td>
+            </tr>
+            <tr class="question">
+                <td class="questiontext">
+                    What is your goal in the task?
+                </td>
+                <td class="answer">
+                    <ul>
+                    {% set changeOptions = [
+                                ("goalwatch", "To watch TV."),
+                                ("goaldesign", "To design new TVs"),
+                                ("goalcat", "To figure out the two types of antennas given limited information."),
+                                ("goalfix", "To fix the TVs.")
+                                ] %}
+                    {% for choice, text in changeOptions %}
+                    <li><input type="radio" id="{{choice}}" name="goal" value="{{choice}}" >
+                    {{ text }}
+                    </input></li>
+                    {% endfor %}
+                    </ul>
+                </td>
+            </tr>
+            <tr class="question">
+                <td class="questiontext">
+                    Can the broken TVs in the training phase still help you predict which TVs pick up
+                    which channel?
+                </td>
+                <td class="answer">
+                    <ul>
+                    {% set changeOptions = [
+                                ("brokenyes", "Yes.  I should not ignore them but try to see what 'natural' patterns or groups might exist."),
+                                ("brokenno", "No, it is impossible to learn anything if I can't see the channel.")
                                 ] %}
                     {% for choice, text in changeOptions %}
                     <li><input type="radio" id="{{choice}}" name="broken" value="{{choice}}" >
