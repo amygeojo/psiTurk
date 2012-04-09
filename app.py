@@ -692,6 +692,14 @@ def regularpage(pagename = None):
         raise ExperimentError('page_not_found')
     return render_template(pagename)
 
+#----------------------------------------------
+# favicon issue - http://flask.pocoo.org/docs/patterns/favicon/
+#----------------------------------------------
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
 ###########################################################
 # let's start
 ###########################################################
