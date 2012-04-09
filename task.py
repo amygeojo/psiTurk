@@ -90,7 +90,7 @@ class tvTask:
         assert self.nbasis % 28 == 0
         assert self.order in ["interspersed"]  # I'm sure I'll try out more in the future
         assert self.testform in ["bimodal", "grid", "mixed"] 
-        assert self.axis in ["size", "angle"]
+        assert self.axis in ["length", "angle"]
         assert ((self.angleoffset+self.anglerange)<=90 and self.angleoffset<=90) or ((self.angleoffset+self.anglerange)>=90 and self.angleoffset>=90)
         assert self.angleoffset <= (180 - self.anglerange)
         assert self.anglerange <= 90
@@ -114,13 +114,13 @@ class tvTask:
         stimflip = stim
         if self.swapcorners:
             stim[2] = 1 - stim[2]
-        if self.axis == "size":
-            size_abstract = stimflip[1]
+        if self.axis == "length":
+            length_abstract = stimflip[1]
             angle_abstract = stimflip[2]
         elif self.axis == "angle":
-            size_abstract = stimflip[2]
+            length_abstract = stimflip[2]
             angle_abstract = stimflip[1]
-        ret.append(self.transform_length( size_abstract ))
+        ret.append(self.transform_length( length_abstract ))
         ret.append(self.transform_angle( angle_abstract ))
         ret = list(ret)
         
@@ -220,7 +220,7 @@ def condition_builder(condnum, counternum):
     lengthoffset = 50
     swapcorners = [False, True][nprand.randint(2)]
     swapidentity = [False, True][nprand.randint(2)]
-    axis = ["size", "angle"][counternum]
+    axis = ["length", "angle"][counternum]
     return dict(
          order = "interspersed",
          nbasis = 112,
