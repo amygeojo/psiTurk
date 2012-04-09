@@ -15,9 +15,8 @@ def random_coords_in_rect(rect, n):
 
 def gen_rects():
     leftfatx = [0, .2]
-    leftskinnyx = [0, .1]
-    rightfatx = [.8, 1]
-    rightskinnyx = [.9, 1]
+    leftskinnyx = [0, .2]; rightfatx = [.8, 1]
+    rightskinnyx = [.8, 1]
     
     ys = zip( np.arange(0, 1, .2), np.arange(.2,1.2,.2) )
     
@@ -196,7 +195,6 @@ class tvTask:
             teststims = [ ["choice"] + row for row in teststims ]
         return trainstims, teststims
 
-
 def condition_builder(condnum, counternum):
     maxlength = 120
     maxangle = 90
@@ -223,3 +221,4 @@ def condition_builder(condnum, counternum):
          lengthoffset = lengthoffset,
          anglerange = anglerange,
          lengthrange = lengthrange)
+
