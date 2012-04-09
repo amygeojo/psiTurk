@@ -26,18 +26,6 @@ def gen_rects():
     
     return leftrects + rightrects
 
-# Functions for building stim arrays
-def build_abstract_grid( n ):
-    """
-    Builds a set of stimuli which constitute a grid inside a unit cube, with
-    density determined by n. n must be square.
-    """
-    rootn = np.sqrt(n) 
-    assert rootn%1 == 0 # Makes sure n is square
-    rect = [[0,1], [0,1]]
-    coords = [[x,y] for x in np.linspace(*rect[0], num=rootn) for y in np.linspace(*rect[1], num=rootn)]
-    return np.column_stack([coords, [np.nan]*n, [np.nan]*n])
-
 class tvTask:
     def __init__(self,
                  order = "interspersed",
