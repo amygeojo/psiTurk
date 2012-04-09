@@ -276,7 +276,8 @@ def start_exp_debug():
                            rule = subj_cond%6, 
                            dimorder = counterbalance%24, 
                            dimvals = counterbalance//24,
-                           skipto = request.args['skipto'] if 'skipto' in request.args else ''
+                           skipto = request.args['skipto'] if 'skipto' in request.args else '',
+                           imagefiles = os.listdir("static/images")
                           )
 
 @app.route('/mturk', methods=['GET'])
@@ -439,7 +440,8 @@ def start_exp():
                            subjinfo = [myid] + taskparams.values(),
                            pages = htmlSnippets(), 
                            train = taskobject.train,
-                           test = taskobject.test)
+                           test = taskobject.test,
+                           imagefiles = os.listdir("static/images"))
 
 
 def crossdomain(origin=None, methods=None, headers=None,

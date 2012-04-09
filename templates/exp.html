@@ -73,5 +73,9 @@
                     href="http://support.google.com/bin/answer.py?hl=en&answer=23852">here</a><p>
     </noscript>
     <div id="stim"></div>
+    
+    {% for image in imagefiles -%}
+    <img style="display: none;" src="static/images/{{ image -}}">
+    {% endfor %}
 </body>
 </html>
