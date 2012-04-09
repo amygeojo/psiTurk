@@ -25,7 +25,8 @@
             </tr>
             <tr class="question">
                 <td class="questiontext">
-                How many possible channels are there in the town?
+                How many possible channels are there in the town? (Please respond with a numeral like 0, 1, 2, 3, etc.)
+                <span class="warning" id="numchannels">Did you use a numeral here?</span>
                 </td>
                 <td class="answer">
                 <input class="numchannels" id="numchannels" name="numchannels" type="number" min="0" />
@@ -33,7 +34,7 @@
             </tr>
             <tr class="question">
                 <td class="questiontext">
-                    Is every TV purposefully tuned to one of the channels?
+                    Is every TV intentionally tuned to one of the channels?
                 </td>
                 <td class="answer">
                     <ul>
@@ -51,7 +52,7 @@
             </tr>
             <tr class="question">
                 <td class="questiontext">
-                    Are the antennas ever broken on the TVs?
+                    Is a TV ever broken because of its antenna?
                 </td>
                 <td class="answer">
                     <ul>
@@ -95,19 +96,19 @@
                 <td class="answer">
                     <ul>
                     {% set changeOptions = [
-                                ("brokenyes", "Yes.  I should not ignore them but try to see what 'natural' patterns or groups might exist."),
+                                ("brokenyes", "Yes. I should try to see what natural patterns or groups might exist."),
                                 ("brokenno", "No, it is impossible to learn anything if I can't see the channel.")
                                 ] %}
                     {% for choice, text in changeOptions %}
-                    <li><input type="radio" id="{{choice}}" name="broken" value="{{choice}}" >
-                    {{ text }}
-                    </input></li>
+                        <li><input type="radio" id="{{choice}}" name="broken" value="{{choice}}" >
+                        {{ text }}
+                        </input></li>
                     {% endfor %}
                     </ul>
                 </td>
             </tr>
         </table>
-            <p id="warning"></p>
+            <p class="warning" id="warntext">Please fill out all the fields before continuing.</p>
         <input type="button" class="continue" id="continue" value="Continue"></input>
     </form>
 </div>

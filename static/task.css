@@ -182,9 +182,10 @@ input[type="number"] {
 }
 
 /* Questionnaire style */
-.questionnaire #warning {
-    color: red;
-    font-weight: bold;
+.questionnaire .warning {
+	display: none;
+	color: red;
+	font-weight: bold;
 }
 
 .questionnaire {

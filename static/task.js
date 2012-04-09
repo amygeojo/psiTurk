@@ -5,6 +5,12 @@
 
 // Helper functions
 
+function IsNumeric(input)
+{
+	return (input - 0) == input && input.length > 0;
+}
+
+
 // Assert functions stolen from 
 // http://aymanh.com/9-javascript-tips-you-may-not-know#assertion
 function AssertException(message) { this.message = message; }
@@ -473,14 +479,17 @@ PreQuiz.prototype.validate = function(fields) {
          ! fields.length && 
          ! fields.screensize && 
          ! fields.angle ) missing.push("features");
-    if ( ! fields.numchannels ) missing.push("numchannels");
-    if ( ! fields.tuneyes && ! fields.tuneno ) missing.push("alltuned");
-    if ( ! fields.antbrokenyes && ! fields.antbrokenno ) missing.push("antbroken");
+    if ( ! IsNumeric(fields.numchannels) ) missing.push("numchannels");
+    if ( ! fields.tuneyes && 
+         ! fields.tuneno ) missing.push("alltuned");
+    if ( ! fields.antbrokenyes && 
+         ! fields.antbrokenno ) missing.push("antbroken");
     if ( ! fields.goalwatch &&
          ! fields.goaldesign &&
          ! fields.goalcat &&
          ! fields.goalfix ) missing.push("goal");
-    if ( ! fields.brokenyes && ! fields.brokenno ) missing.push("broken");
+    if ( ! fields.brokenyes && 
+         ! fields.brokenno ) missing.push("broken");
     return missing;
 };
 
@@ -513,8 +522,14 @@ PreQuiz.prototype.dotrial = function(currentscreen) {
 	displayscreen( this.items['quiz'] );
 	var timestamp = new Date().getTime();
 	$('.continue').click( function() {
-		if ( that.validate( getFormFields() ).length > 0 ) {
-			$("#warning").text("Please fill out all the fields before continuing.");
+        $(".warning").hide();
+        var unvalidated = that.validate( getFormFields() );
+		if ( unvalidated.length > 0 ) {
+			$("#warntext").show();
+			for (i=0; i<unvalidated.length; i++) {
+				$("#" + unvalidated[i]).show();
+			}
+            console.log( unvalidated );
 			return false;
 		}
 		var rt = (new Date().getTime()) - timestamp;
