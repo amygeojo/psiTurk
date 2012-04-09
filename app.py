@@ -7,7 +7,7 @@ from random import choice
 from ConfigParser import ConfigParser
 
 # Importing flask
-from flask import Flask, render_template, request, Response, make_response, jsonify, current_app
+from flask import Flask, render_template, request, Response, make_response, jsonify, current_app, send_from_directory
 
 # Sqlalchemy imports
 from sqlalchemy import create_engine
@@ -433,7 +433,6 @@ def start_exp():
     
     taskparams = task.condition_builder(subj_cond, subj_counter)
     taskobject = task.tvTask( ** taskparams )
-    print "Ntrain items: ", len(taskobject.train)
     
     return render_template('exp.html',
                            subjnum = myid, 
