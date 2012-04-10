@@ -210,6 +210,8 @@ function recordFormFields () {
 	$('textarea').each( extractfun );
 	$('select').each( extractfun );
 	$('input').each( extractfun );
+	
+	datastring = datastring.concat("\n");
 
     return fields;
 }
