@@ -345,9 +345,9 @@ ExperimentBlock.prototype.addprompt = function(buttons) {
 };
 ExperimentBlock.prototype.dotrial = function(stim) {
 	var that = this;
-	length = stim[5];
-	angle = stim[6];
-	label = stim[7];
+	var length = stim[5],
+	    angle = stim[6],
+	    label = stim[7];
 	this.draw_tv( length, angle, label );
 	// this.addprompt();
 	// stimon = new Date().getTime();
@@ -415,7 +415,7 @@ InstructBlock.prototype.constructor = InstructBlock;
 // Show an instruction screen.
 InstructBlock.prototype.dotrial = function(currentscreen) {
 	var that = this;
-    console.log(currentscreen);
+    // console.log(currentscreen);
 	displayscreen( currentscreen );
 	var timestamp = new Date().getTime();
 	$('.continue').click( function() {
@@ -508,7 +508,7 @@ PreQuiz.prototype.checkform = function(fields) {
    if ( fields.goalwatch ||
         fields.goaldesign ||
         !fields.goalcat ||
-        fields.goalfix ) missing.push("goal");
+        fields.goalfix ) incorrect.push("goal");
     if ( ! fields.brokenyes || 
            fields.brokenno ) incorrect.push("broken");
     return incorrect;
@@ -517,7 +517,7 @@ PreQuiz.prototype.checkform = function(fields) {
 // Show an instruction screen.
 PreQuiz.prototype.dotrial = function(currentscreen) {
 	var that = this;
-    console.log(currentscreen);
+    // console.log(currentscreen);
 	displayscreen( this.items['quiz'] );
 	var timestamp = new Date().getTime();
 	$('.continue').click( function() {
@@ -528,7 +528,7 @@ PreQuiz.prototype.dotrial = function(currentscreen) {
 			for (i=0; i<unvalidated.length; i++) {
 				$("#" + unvalidated[i]).show();
 			}
-            console.log( unvalidated );
+            // console.log( unvalidated );
 			return false;
 		}
 		var rt = (new Date().getTime()) - timestamp;
