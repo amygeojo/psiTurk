@@ -136,6 +136,9 @@ ul {
 #inputs  {
 	text-align: center;
 }
+#inputs input {
+	margin: 0 50px;
+}
 
 
 
