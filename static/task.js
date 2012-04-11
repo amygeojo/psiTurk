@@ -305,11 +305,15 @@ function nextblock() {
 ********************/
 var currentBlock;
 
-function ExperimentBlock() {}
+function ExperimentBlock() {
+    this.count = 0;
+}
 
 // Mutable variables
 ExperimentBlock.prototype.trialnum = 0;
 ExperimentBlock.prototype.blocknum = 0;
+ExperimentBlock.prototype.count = 0;
+ExperimentBlock.prototype.total = 0;
 
 // HTML snippets
 ExperimentBlock.prototype.acknowledgment = '<p>Thanks for your response!</p>';
@@ -349,6 +353,7 @@ ExperimentBlock.prototype.dotrial = function(stim) {
 	    angle = stim[6],
 	    label = stim[7];
 	this.draw_tv( length, angle, label );
+	$("#countdown").html("TV #" + this.count + " / " + this.total);
 	// this.addprompt();
 	// stimon = new Date().getTime();
 	setTimeout(
@@ -365,6 +370,7 @@ ExperimentBlock.prototype.dotrial = function(stim) {
 				// Wait acknowledgmenttime to clear screen
 				setTimeout(
 					function() {
+						$("#countdown").html("");
 						$('#query').html('');
 						that.clearTV();
 						// Wait ISI to go to next trial.
@@ -376,7 +382,7 @@ ExperimentBlock.prototype.dotrial = function(stim) {
 		prequerytime);
 };
 
-ExperimentBlock.prototype.recordtrial = function(stim, resp, rt ) {
+ExperimentBlock.prototype.recordtrial = function(stim, resp, rt) {
 	trialvals = subjinfo + ',' + [this.trialnum, this.blocknum] + ',' + stim + ',' + [resp, rt];
 	//console.log( trialvals );
 	datastring = datastring.concat( trialvals, "\n" );
@@ -389,6 +395,7 @@ ExperimentBlock.prototype.nexttrial = function() {
 	}
 	else {
 		ExperimentBlock.prototype.trialnum += 1;
+		this.count += 1;
 		var item = this.items.shift();
 		this.dotrial( item );
 	}
@@ -444,6 +451,7 @@ InstructBlock.prototype.recordtrial = function(currentscreen, rt) {
 function TrialBlock(stims) {
 	ExperimentBlock.call(this); // Call parent constructor
 	this.items = stims;
+    this.total = stims.length;
 }
 
 TrialBlock.prototype = new ExperimentBlock();
