@@ -7,7 +7,6 @@ body {
 	font-family: Verdana, Helvetica, sans-serif;
 	margin: 0 auto;
 	background: #aac;
-	width: 800px;
 }
 
 a {
@@ -38,7 +37,7 @@ ul {
 	min-height: 680px;
 	margin: 20px auto;
 	padding: 10px 30px;
-	overflow: show;
+	overflow: hidden;
 }
 
 .continue  {

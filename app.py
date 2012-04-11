@@ -579,13 +579,12 @@ def quitter():
             session.commit()
     return render_template('error.html', errornum= experiment_errors['tried_to_quit'])
 
-@app.route('/debrief', methods = ['POST', 'GET'])
+@app.route('/predebrief', methods = ['POST'])
 def savedata():
     """
     User has finished the experiment and is posting their data in the form of a
     (long) string. They will receive a debreifing back.
     """
-    print request.form.keys()
     if not (request.form.has_key('subjid') and request.form.has_key('data')):
         raise ExperimentError('improper_inputs')
     subjid = int(request.form['subjid'])
@@ -600,7 +599,16 @@ def savedata():
     user.datastring = datastring
     user.endhit = datetime.datetime.now()
     session.commit()
+    axis = {0: "length", 1: "angle"}[user.counterbalance]
     
+    return render_template('predebrief.html', axis=axis, subjid=subjid)
+
+@app.route('/debrief', methods = ['GET'])
+def givedebrief():
+    """
+    Official debriefing
+    """
+    subjid = request.args['subjid']
     return render_template('debriefing.html', subjid=subjid)
 
 @app.route('/complete', methods = ['POST'])
