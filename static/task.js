@@ -484,8 +484,6 @@ PreQuiz.prototype.validate = function(fields) {
     if ( ! IsNumeric(fields.numchannels) ) missing.push("numchannels");
     if ( ! fields.tuneyes && 
          ! fields.tuneno ) missing.push("alltuned");
-    if ( ! fields.antbrokenyes && 
-         ! fields.antbrokenno ) missing.push("antbroken");
     if ( ! fields.goalwatch &&
          ! fields.goaldesign &&
          ! fields.goalcat &&
@@ -507,7 +505,6 @@ PreQuiz.prototype.checkform = function(fields) {
     // Question: Are all the TVs tuned to one of the channels?
     if ( ! fields.tuneyes || 
            fields.tuneno ) incorrect.push("alltuned");
-   if ( ! fields.antbrokenyes || fields.antbrokenno ) missing.push("antbroken");
    if ( fields.goalwatch ||
         fields.goaldesign ||
         !fields.goalcat ||

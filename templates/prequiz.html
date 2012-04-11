@@ -52,24 +52,6 @@
             </tr>
             <tr class="question">
                 <td class="questiontext">
-                    Is a TV ever broken because of its antenna?
-                </td>
-                <td class="answer">
-                    <ul>
-                    {% set changeOptions = [
-                                ("antbrokenyes", "Yes."), 
-                                ("antbrokenno", "No.")
-                                ] %}
-                    {% for choice, text in changeOptions %}
-                    <li><input type="radio" id="{{choice}}" name="antbroken" value="{{choice}}" >
-                    {{ text }}
-                    </input></li>
-                    {% endfor %}
-                    </ul>
-                </td>
-            </tr>
-            <tr class="question">
-                <td class="questiontext">
                     What is your goal in the task?
                 </td>
                 <td class="answer">
