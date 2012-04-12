@@ -4,6 +4,7 @@
 <html>
 <head>
 	<title>Debriefing for Group Learning Experiment</title>
+        <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8" />        
 	<link rel="stylesheet" href="static/task.css" type="text/css" media="screen">
 </head>
 <body>
@@ -45,8 +46,8 @@
 					research to me, and I feel that any questions I have asked were
 					satisfactorily answered.</p>
 					<table><tr>
-						<td id="affirmative" onClick="javascript:document.forms['accept'].submit()">Yes, I agree.</td>
-						<td id="negative" onClick="javascript:document.forms['decline'].submit()">No, please withhold my data. I will contact the experimenter with questions.</td>
+                                                <td id="affirmative" onClick="javascript:document.forms['accept'].submit()">Yes, I agree.</td> 
+                                                <td id="negative" onClick="javascript:document.forms['decline'].submit()">No, please withhold my data. I will contact the experimenter with questions.</td>
 					</tr></table> 
 					<form id="accept" action="complete" method="post">
 						<input type="hidden" name="subjid" value="{{ subjid }}" />

@@ -210,6 +210,8 @@ function recordFormFields () {
 	$('textarea').each( extractfun );
 	$('select').each( extractfun );
 	$('input').each( extractfun );
+	
+	datastring = datastring.concat("\n");
 
     return fields;
 }
@@ -303,11 +305,15 @@ function nextblock() {
 ********************/
 var currentBlock;
 
-function ExperimentBlock() {}
+function ExperimentBlock() {
+    this.count = 0;
+}
 
 // Mutable variables
 ExperimentBlock.prototype.trialnum = 0;
 ExperimentBlock.prototype.blocknum = 0;
+ExperimentBlock.prototype.count = 0;
+ExperimentBlock.prototype.total = 0;
 
 // HTML snippets
 ExperimentBlock.prototype.acknowledgment = '<p>Thanks for your response!</p>';
@@ -343,10 +349,11 @@ ExperimentBlock.prototype.addprompt = function(buttons) {
 };
 ExperimentBlock.prototype.dotrial = function(stim) {
 	var that = this;
-	length = stim[5];
-	angle = stim[6];
-	label = stim[7];
+	var length = stim[5],
+	    angle = stim[6],
+	    label = stim[7];
 	this.draw_tv( length, angle, label );
+	$("#countdown").html("TV #" + this.count + " / " + this.total);
 	// this.addprompt();
 	// stimon = new Date().getTime();
 	setTimeout(
@@ -363,6 +370,7 @@ ExperimentBlock.prototype.dotrial = function(stim) {
 				// Wait acknowledgmenttime to clear screen
 				setTimeout(
 					function() {
+						$("#countdown").html("");
 						$('#query').html('');
 						that.clearTV();
 						// Wait ISI to go to next trial.
@@ -374,7 +382,7 @@ ExperimentBlock.prototype.dotrial = function(stim) {
 		prequerytime);
 };
 
-ExperimentBlock.prototype.recordtrial = function(stim, resp, rt ) {
+ExperimentBlock.prototype.recordtrial = function(stim, resp, rt) {
 	trialvals = subjinfo + ',' + [this.trialnum, this.blocknum] + ',' + stim + ',' + [resp, rt];
 	//console.log( trialvals );
 	datastring = datastring.concat( trialvals, "\n" );
@@ -387,6 +395,7 @@ ExperimentBlock.prototype.nexttrial = function() {
 	}
 	else {
 		ExperimentBlock.prototype.trialnum += 1;
+		this.count += 1;
 		var item = this.items.shift();
 		this.dotrial( item );
 	}
@@ -413,7 +422,7 @@ InstructBlock.prototype.constructor = InstructBlock;
 // Show an instruction screen.
 InstructBlock.prototype.dotrial = function(currentscreen) {
 	var that = this;
-    console.log(currentscreen);
+    // console.log(currentscreen);
 	displayscreen( currentscreen );
 	var timestamp = new Date().getTime();
 	$('.continue').click( function() {
@@ -442,6 +451,7 @@ InstructBlock.prototype.recordtrial = function(currentscreen, rt) {
 function TrialBlock(stims) {
 	ExperimentBlock.call(this); // Call parent constructor
 	this.items = stims;
+    this.total = stims.length;
 }
 
 TrialBlock.prototype = new ExperimentBlock();
@@ -482,8 +492,6 @@ PreQuiz.prototype.validate = function(fields) {
     if ( ! IsNumeric(fields.numchannels) ) missing.push("numchannels");
     if ( ! fields.tuneyes && 
          ! fields.tuneno ) missing.push("alltuned");
-    if ( ! fields.antbrokenyes && 
-         ! fields.antbrokenno ) missing.push("antbroken");
     if ( ! fields.goalwatch &&
          ! fields.goaldesign &&
          ! fields.goalcat &&
@@ -505,11 +513,10 @@ PreQuiz.prototype.checkform = function(fields) {
     // Question: Are all the TVs tuned to one of the channels?
     if ( ! fields.tuneyes || 
            fields.tuneno ) incorrect.push("alltuned");
-   if ( ! fields.antbrokenyes || fields.antbrokenno ) missing.push("antbroken");
    if ( fields.goalwatch ||
         fields.goaldesign ||
         !fields.goalcat ||
-        fields.goalfix ) missing.push("goal");
+        fields.goalfix ) incorrect.push("goal");
     if ( ! fields.brokenyes || 
            fields.brokenno ) incorrect.push("broken");
     return incorrect;
@@ -518,7 +525,7 @@ PreQuiz.prototype.checkform = function(fields) {
 // Show an instruction screen.
 PreQuiz.prototype.dotrial = function(currentscreen) {
 	var that = this;
-    console.log(currentscreen);
+    // console.log(currentscreen);
 	displayscreen( this.items['quiz'] );
 	var timestamp = new Date().getTime();
 	$('.continue').click( function() {
@@ -529,7 +536,7 @@ PreQuiz.prototype.dotrial = function(currentscreen) {
 			for (i=0; i<unvalidated.length; i++) {
 				$("#" + unvalidated[i]).show();
 			}
-            console.log( unvalidated );
+            // console.log( unvalidated );
 			return false;
 		}
 		var rt = (new Date().getTime()) - timestamp;
