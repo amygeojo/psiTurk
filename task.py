@@ -2,7 +2,7 @@
 import numpy as np
 import numpy.random as nprand
 
-VERSION = 1.0
+VERSION = 1.1
 NCONDS = 1
 NCOUNTERS = 2
 
@@ -200,7 +200,7 @@ def condition_builder(condnum, counternum):
     maxangle = 90
     #anglerange = [70, 90][condnum // 2]
     #lengthrange = [70, 100][condnum % 2]
-    anglerange = 80
+    anglerange = 65
     lengthrange = 100
     angleoffset = nprand.randint(0, maxangle-anglerange+1) + maxangle*nprand.randint(2)
     lengthoffset = 50
