@@ -3,6 +3,7 @@ labels <- c( "Unimodal", "Bimodal", "2D", "Null" )
 oned.labels <- c( "Unimodal", "Bimodal", "Null" ) 
 
 fits.table <- function(df, withplot=F) {
+    axis <- unique(df$axis)
     twod <- glc( resp ~ bimod + unimod, data=df )
     bimod <- glc( resp ~ bimod, data=df )
     unimod <- glc( resp ~  unimod, data=df )
@@ -44,7 +45,8 @@ fits.table <- function(df, withplot=F) {
     data.frame(BestFit=winner, BestFitOne=onedwinner, Used=used,
                unimodcoeff=unimodcoeff, bimodcoeff=bimodcoeff,
                winnercoeff=winnercoeff, twodAngle=twod.angle,
-               twodBimod=twod.bimod, twodNoise=twod.noise, twodBias=twod.bias )
+               twodBimod=twod.bimod, twodNoise=twod.noise, twodBias=twod.bias,
+               axis=axis )
 }
 
 fits <- ddply( testtrials, ~ subjid, fits.table)

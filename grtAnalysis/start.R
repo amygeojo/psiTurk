@@ -1,5 +1,5 @@
 library(ProjectTemplate)
 load.project()
 
-
-plot( glc(resp ~ bimod + unimod, data=subset( testtrials, subjid==4 )))
+source("src/plot_effects.R")
+source("src/plot_individuals.R")
