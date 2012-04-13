@@ -8,7 +8,7 @@ from config import config
 DATABASE = config.get('Database Parameters', 'database_url')
 
 engine = create_engine(DATABASE, echo=False) 
-db_session = scoped_session(sessionmaker(autocommit=True,
+db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
                                          bind=engine))
 
