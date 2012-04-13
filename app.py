@@ -153,7 +153,6 @@ def get_people(people):
         people.append( person )
     return people
 
-
 #----------------------------------------------
 # Experiment counterbalancing code.
 #----------------------------------------------
@@ -202,7 +201,6 @@ def get_random_condition():
 def get_random_counterbalance():
     starttime = datetime.datetime.now() + datetime.timedelta(minutes=-30)
     numcounts = task.NCOUNTERS
-    numcounts = config.getint('Task Parameters', 'num_counters')
     participants = Participant.query.\
                  filter(Participant.codeversion == CODE_VERSION).\
                  filter(or_(Participant.endhit != None, 
