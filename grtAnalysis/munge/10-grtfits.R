@@ -4,6 +4,12 @@ oned.labels <- c( "Unimodal", "Bimodal", "Null" )
 
 fits.table <- function(df, withplot=F) {
     axis <- unique(df$axis)
+    anglerange <- unique(df$anglerange)
+    subj <- unique( df$subjid )
+    if (length( unique ( df$resp ) ) < 2) {
+        warning( paste("Subject",subj,"always gave the same response.") )
+        return (data.frame())
+    }
     twod <- glc( resp ~ bimod + unimod, data=df )
     bimod <- glc( resp ~ bimod, data=df )
     unimod <- glc( resp ~  unimod, data=df )
@@ -46,8 +52,8 @@ fits.table <- function(df, withplot=F) {
                unimodcoeff=unimodcoeff, bimodcoeff=bimodcoeff,
                winnercoeff=winnercoeff, twodAngle=twod.angle,
                twodBimod=twod.bimod, twodNoise=twod.noise, twodBias=twod.bias,
-               axis=axis )
+               axis=axis, anglerange=anglerange )
 }
 
-fits <- ddply( testtrials, ~ subjid, fits.table)
+fits <- ddply( testtrials, ~ subjid, fits.table, .parallel=T)
 

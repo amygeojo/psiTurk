@@ -2,6 +2,6 @@ data_loading: on
 munging: on
 logging: off
 load_libraries: on
-libraries: reshape, plyr, ggplot2, grt, stringr
+libraries: reshape, plyr, ggplot2, grt, stringr, doMC
 as_factors: on
 data_tables: off
