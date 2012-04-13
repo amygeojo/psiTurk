@@ -200,10 +200,10 @@ def condition_builder(condnum, counternum):
     maxangle = 90
     #anglerange = [70, 90][condnum // 2]
     #lengthrange = [70, 100][condnum % 2]
-    anglerange = 80
-    lengthrange = 100
+    anglerange = 70
+    lengthrange = 120
     angleoffset = nprand.randint(0, maxangle-anglerange+1) + maxangle*nprand.randint(2)
-    lengthoffset = 50
+    lengthoffset = 30
     swapcorners = [False, True][nprand.randint(2)]
     swapidentity = [False, True][nprand.randint(2)]
     axis = ["length", "angle"][counternum]
