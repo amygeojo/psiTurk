@@ -2,7 +2,7 @@
 import numpy as np
 import numpy.random as nprand
 
-VERSION = 1.0
+VERSION = 1.1
 NCONDS = 1
 NCOUNTERS = 2
 
