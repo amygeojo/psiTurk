@@ -489,6 +489,7 @@ def enterexp():
                 one()
         user.status = STARTED
         user.beginexp = datetime.datetime.now()
+        db_session.commit()
 
 @app.route('/inexpsave', methods = ['POST'])
 def inexpsave():
@@ -497,17 +498,17 @@ def inexpsave():
     progress. This lets us better understand attrition.
     """
     print "accessing the /inexpsave route"
-    if request.method == 'POST':
-        print request.form.keys()
-        if request.form.has_key('subjId') and request.form.has_key('dataString'):
-            subj_id = request.form['subjId']
-            datastring = request.form['dataString']  
-            print "getting the save data", subj_id, datastring
-            user = Participant.query.\
-                    filter(Participant.subjid == subj_id).\
-                    one()
-            user.datastring = datastring
-            user.status = STARTED
+    print request.form.keys()
+    if request.form.has_key('subjId') and request.form.has_key('dataString'):
+        subj_id = request.form['subjId']
+        datastring = request.form['dataString']  
+        print "getting the save data", subj_id, datastring
+        user = Participant.query.\
+                filter(Participant.subjid == subj_id).\
+                one()
+        user.datastring = datastring
+        user.status = STARTED
+        db_session.commit()
     return render_template('error.html', errornum= experiment_errors['intermediate_save'])
 
 @app.route('/quitter', methods = ['POST'])
@@ -516,17 +517,17 @@ def quitter():
     Subjects post data as they quit, to help us better understand the quitters.
     """
     print "accessing the /quitter route"
-    if request.method == 'POST':
-        print request.form.keys()
-        if request.form.has_key('subjId') and request.form.has_key('dataString'):
-            subjid = request.form['subjId']
-            datastring = request.form['dataString']  
-            print "getting the save data", subjid, datastring
-            user = Participant.query.\
-                    filter(Participant.subjid == subjid).\
-                    one()
-            user.datastring = datastring
-            user.status = QUITEARLY
+    print request.form.keys()
+    if request.form.has_key('subjId') and request.form.has_key('dataString'):
+        subjid = request.form['subjId']
+        datastring = request.form['dataString']  
+        print "getting the save data", subjid, datastring
+        user = Participant.query.\
+                filter(Participant.subjid == subjid).\
+                one()
+        user.datastring = datastring
+        user.status = QUITEARLY
+        db_session.commit()
     return render_template('error.html', errornum= experiment_errors['tried_to_quit'])
 
 @app.route('/predebrief', methods = ['POST'])
@@ -547,6 +548,8 @@ def savedata():
     user.status = COMPLETED
     user.datastring = datastring
     user.endhit = datetime.datetime.now()
+    db_session.commit()
+    
     axis = {0: "length", 1: "angle"}[user.counterbalance]
     
     return render_template('predebrief.html', axis=axis, subjid=subjid)
@@ -568,18 +571,20 @@ def completed():
     """
     print "accessing the /complete route"
     print request.form.keys()
-    if request.form.has_key('subjid') and request.form.has_key('agree'):
-        subjid = request.form['subjid']
-        agreed = request.form['agree']  
-        print subjid, agreed
-        
-        user = Participant.query.\
-                filter(Participant.subjid == subjid).\
-                one()
-        user.status = DEBRIEFED
-        user.debriefed = agreed == 'true'
-        
-        return render_template('closepopup.html')
+    if not (request.form.has_key('subjid') and request.form.has_key('agree')):
+        raise ExperimentError('improper_inputs')
+    subjid = request.form['subjid']
+    agreed = request.form['agree']  
+    print subjid, agreed
+    
+    user = Participant.query.\
+            filter(Participant.subjid == subjid).\
+            one()
+    user.status = DEBRIEFED
+    user.debriefed = agreed == 'true'
+    db_session.commit()
+    
+    return render_template('closepopup.html')
 
 #------------------------------------------------------
 # routes for displaying the database/editing it in html
@@ -616,6 +621,7 @@ def updatestatus():
                 one()
         if field=='status':
             user.status = value
+        db_session.commit()
         
         return value
 
