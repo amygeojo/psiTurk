@@ -45,6 +45,7 @@ testtrials1$alllab <- 'false'
 
 testpipe2 <- pipe( paste("awk -F, 'NF==27 {if ($17==2) { print $0 }}' >", tmp)  )
 cat(alldata.rawstring, file=testpipe2)
+close(testpipe2)
 
 columns2 <- c('subjid',
               'alllab', 
