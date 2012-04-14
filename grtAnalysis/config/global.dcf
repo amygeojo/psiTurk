@@ -5,3 +5,4 @@ load_libraries: on
 libraries: reshape, plyr, ggplot2, grt, stringr, doMC
 as_factors: on
 data_tables: off
+cache_loading: off

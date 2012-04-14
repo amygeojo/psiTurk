@@ -4,6 +4,7 @@ oned.labels <- c( "Unimodal", "Bimodal", "Null" )
 
 fits.table <- function(df, withplot=F) {
     axis <- unique(df$axis)
+    labcond <- paste( unique(df$alllab), unique(df$nlab) )
     anglerange <- unique(df$anglerange)
     subj <- unique( df$subjid )
     if (length( unique ( df$resp ) ) < 2) {
@@ -52,7 +53,7 @@ fits.table <- function(df, withplot=F) {
                unimodcoeff=unimodcoeff, bimodcoeff=bimodcoeff,
                winnercoeff=winnercoeff, twodAngle=twod.angle,
                twodBimod=twod.bimod, twodNoise=twod.noise, twodBias=twod.bias,
-               axis=axis, anglerange=anglerange )
+               axis=axis, anglerange=anglerange, labcond=labcond )
 }
 
 fits <- ddply( testtrials, ~ subjid, fits.table, .parallel=T)
