@@ -154,25 +154,27 @@ function raphael_line( x1, y1, x2, y2 ) {
 }
 
 function draw_tv(paper, length, angle, channel) {
-	// TV params
-	var angle_radiens = (angle / 180) * Math.PI,
-	    xdelta = length * Math.cos( angle_radiens ),
-	    ydelta = length * Math.sin( angle_radiens );
-	
-	// Attributes
-	var strokewidth = 3,
-	    antenna_attr = {"stroke-width": strokewidth},
-	    stem_attr = {"stroke-width": strokewidth,
-	                 "stroke": "#999"};
-	
-	var stem = paper.
-		path(raphael_line(stemx, stemy1, stemx, stemy2)).
-		attr(stem_attr);
-    
-	var antenna = paper.
-		path(raphael_line(stemx-xdelta, stemy2-ydelta,
-						  stemx+xdelta, stemy2+ydelta)).
-		attr(antenna_attr);
+	if (! isNaN(length)) {
+		// TV params
+		var angle_radiens = (angle / 180) * Math.PI,
+			xdelta = length * Math.cos( angle_radiens ),
+			ydelta = length * Math.sin( angle_radiens );
+		
+		// Attributes
+		var strokewidth = 3,
+			antenna_attr = {"stroke-width": strokewidth},
+			stem_attr = {"stroke-width": strokewidth,
+						 "stroke": "#999"};
+		
+		var stem = paper.
+			path(raphael_line(stemx, stemy1, stemx, stemy2)).
+			attr(stem_attr);
+		
+		var antenna = paper.
+			path(raphael_line(stemx-xdelta, stemy2-ydelta,
+							  stemx+xdelta, stemy2+ydelta)).
+			attr(antenna_attr);
+	}
 	var tv = paper.image(tvImages[channel], tvx, tvy, tvwidth, tvheight);
 }
 
@@ -241,8 +243,8 @@ function submitdata() {
 // Stimulus info
 var tvImages = {
 	broken: "static/images/tvnan.png",
-	0: "static/images/tv0.png",
-	1: "static/images/tv1.png" 
+	ch1: "static/images/tv0.png",
+	ch2: "static/images/tv1.png" 
 };
 
 // TV Stim variables

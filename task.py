@@ -2,12 +2,15 @@
 import numpy as np
 import numpy.random as nprand
 
-VERSION = 1.2
+VERSION = 1.3
 NCONDS = 1
 NCOUNTERS = 2
 
 def bounded(x, bounds=[0,1]):
-    return x >= bounds[0] and x <= bounds[1]
+    if not np.isnan(x):
+        return x >= bounds[0] and x <= bounds[1]
+    else:
+        return True
 
 def random_coords_in_rect(rect, n):
     return zip(nprand.uniform( rect[0][0], rect[0][1], n ),
@@ -39,7 +42,8 @@ class tvTask:
                  angleoffset = None,
                  lengthoffset = 50,
                  anglerange = 60,
-                 lengthrange = 120):
+                 lengthrange = 120,
+                 alllab = False):
         
         # These params need to not take default values:
         assert axis != None
@@ -60,6 +64,7 @@ class tvTask:
         self.lengthoffset = lengthoffset
         self.anglerange = anglerange
         self.lengthrange = lengthrange
+        self.alllab = alllab
         
         self.checkinputs()
         
@@ -145,14 +150,16 @@ class tvTask:
         
         teststims = []
         trainstims = []
-        # DISCUSS: should we make all the rectangles squares?
-        # There are 10 
+        # 10  rectangles
         for i in range(len(layout)):
             ntrain = layout[i] * trainreps
             ntest = layout[i] * testreps
-            traincoords = random_coords_in_rect( rects[i], ntrain )
+            if self.alllab and not (i in [0,9]):
+                traincoords = [(np.nan, np.nan) for _ in xrange( ntrain )]
+            else:
+                traincoords = random_coords_in_rect( rects[i], ntrain )
             testcoords = random_coords_in_rect( rects[i], ntest )
-            
+
             # Most TVs are unlabeled, so we start with those and then add the others
             trainlabels = [np.nan for _ in xrange(ntrain)]
             testlabels = [np.nan for _ in xrange(ntest)]
@@ -210,8 +217,9 @@ def condition_builder(condnum, counternum):
     return dict(
          order = "interspersed",
          nbasis = 112,
-         nlab = 0,
+         nlab = 16,
          ntest = 50,
+         alllab = True,
          testform = "bimodal",
          respondtrain = "no",
          axis = axis,
