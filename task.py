@@ -2,8 +2,8 @@
 import numpy as np
 import numpy.random as nprand
 
-VERSION = 1.3
-NCONDS = 1
+VERSION = 1.4
+NCONDS = 3
 NCOUNTERS = 2
 
 def bounded(x, bounds=[0,1]):
@@ -214,12 +214,20 @@ def condition_builder(condnum, counternum):
     swapcorners = [False, True][nprand.randint(2)]
     swapidentity = [False, True][nprand.randint(2)]
     axis = ["length", "angle"][counternum]
+    if condnum == 0:
+        nlab = 0
+    else:
+        nlab = 16
+    if condnum == 2:
+        alllab = True
+    else:
+        alllab = False
     return dict(
          order = "interspersed",
          nbasis = 112,
-         nlab = 16,
+         nlab = nlab,
          ntest = 50,
-         alllab = True,
+         alllab = alllab,
          testform = "bimodal",
          respondtrain = "no",
          axis = axis,

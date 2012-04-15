@@ -191,21 +191,45 @@ def get_random_condition():
     numconds = task.NCONDS
     
     participants = Participant.query.\
-                   filter(Participant.codeversion == CODE_VERSION).\
+                   filter(Participant.codeversion >= 1.2).\
                    filter(or_(Participant.endhit != None, 
-                           Participant.beginhit > starttime))
-    subj_cond = choose_least_used(numconds, [p.cond for p in participants] )
+                           Participant.beginhit > starttime)).all()
+    conds = []
+    for p in participants:
+        if p.codeversion == '1.2':
+            conds.append(0)
+        elif p.codeversion == '1.3':
+            conds.append(2)
+        elif p.codeversion == '1.4':
+            conds.append( p.cond )
+        else:
+            print "Hmm, got a funny looking partcipant: ", p
+    subj_cond = choose_least_used(numconds, conds )
+    print "given ", conds, " chose ", subj_cond
     
     return subj_cond
 
-def get_random_counterbalance():
+def get_random_counterbalance(cond):
     starttime = datetime.datetime.now() + datetime.timedelta(minutes=-30)
     numcounts = task.NCOUNTERS
     participants = Participant.query.\
                  filter(Participant.codeversion == CODE_VERSION).\
                  filter(or_(Participant.endhit != None, 
                             Participant.beginhit > starttime))
+    counters = []
+    for p in participants:
+        if p.codeversion == '1.2':
+            if cond == 0:
+                counters.append(p.counterbalance)
+        elif p.codeversion == '1.3':
+            if cond == 2:
+                counters.append(p.counterbalance)
+        elif p.codeversion == '1.4':
+            counters.append( p.counterbalance )
+        else:
+            print "Hmm, got a funny looking partcipant: ", p
     subj_counter = choose_least_used(numcounts, [p.counterbalance for p in participants])
+    print "given ", ounters, " chose ", subj_counter
     return subj_counter
 
 #----------------------------------------------
@@ -364,11 +388,11 @@ def start_exp():
     numrecs = len(matches)
     if numrecs == 0:
         
-        # doesn't exist, get a histogram of completed conditions and choose an under-used condition
+        # Choose condition
         subj_cond = get_random_condition()
         
-        # doesn't exist, get a histogram of completed counterbalanced, and choose an under-used one
-        subj_counter = get_random_counterbalance()
+        # Choose counterbalance
+        subj_counter = get_random_counterbalance(subj_cond)
         
         if not request.remote_addr:
             myip = "UKNOWNIP"
