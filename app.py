@@ -229,7 +229,7 @@ def get_random_counterbalance(cond):
         else:
             print "Hmm, got a funny looking partcipant: ", p
     subj_counter = choose_least_used(numcounts, [p.counterbalance for p in participants])
-    print "given ", ounters, " chose ", subj_counter
+    print "given ", counters, " chose ", subj_counter
     return subj_counter
 
 #----------------------------------------------
@@ -316,7 +316,7 @@ def mturkroute():
                                hitid = hitId, 
                                assignmentid = assignmentId, 
                                workerid = workerId)
-    elif status == STARTED:
+    elif status == STARTED or status == QUITEARLY:
         # Once participants have finished the instructions, we do not allow
         # them to start the task again.
         raise ExperimentError('already_started_exp_mturk')
