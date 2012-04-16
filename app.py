@@ -193,7 +193,7 @@ def get_random_condition():
     participants = Participant.query.\
                    filter(Participant.codeversion == CODE_VERSION).\
                    filter(Participant.endhit != None, 
-                          Participant.beginhit > starttime)).\
+                          Participant.beginhit > starttime).\
                    all()
     subj_cond = choose_least_used(numcounts, [p.cond for p in participants])
     print "given ", conds, " chose ", subj_cond
@@ -207,7 +207,7 @@ def get_random_counterbalance(cond):
                    filter(Participant.codeversion == CODE_VERSION).\
                    filter(Participant.cond == cond).\
                    filter(Participant.endhit != None, 
-                          Participant.beginhit > starttime)).\
+                          Participant.beginhit > starttime).\
                    all()
     subj_counter = choose_least_used(numcounts, [p.counterbalance for p in participants])
     print "given ", counters, " chose ", subj_counter
