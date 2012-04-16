@@ -195,7 +195,8 @@ def get_random_condition():
                    filter(Participant.endhit != None, 
                           Participant.beginhit > starttime).\
                    all()
-    subj_cond = choose_least_used(numcounts, [p.cond for p in participants])
+    conds = [p.cond for p in participants]
+    subj_cond = choose_least_used(numconds, conds)
     print "given ", conds, " chose ", subj_cond
     
     return subj_cond
@@ -209,7 +210,8 @@ def get_random_counterbalance(cond):
                    filter(Participant.endhit != None, 
                           Participant.beginhit > starttime).\
                    all()
-    subj_counter = choose_least_used(numcounts, [p.counterbalance for p in participants])
+    counters = [p.counterbalance for p in participants]
+    subj_counter = choose_least_used(numcounts, counters)
     print "given ", counters, " chose ", subj_counter
     return subj_counter
 
@@ -373,10 +375,10 @@ def start_exp():
         subj_cond = get_random_condition()
         subj_counter = get_random_counterbalance(subj_cond)
         
-        if not request['remote_addr']:
+        if not request.remote_addr:
             myip = "UKNOWNIP"
         else:
-            myip = request['remote_addr']
+            myip = request.remote_addr
         
         # set condition here and insert into database
         part = Participant( hitId, myip, assignmentId, workerId, subj_cond, subj_counter)
