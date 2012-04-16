@@ -3,10 +3,15 @@ labels <- c( "Unimodal", "Bimodal", "2D", "Null" )
 oned.labels <- c( "Unimodal", "Bimodal", "Null" ) 
 
 fits.table <- function(df, withplot=F) {
+    # Metadata:
     axis <- unique(df$axis)
-    labcond <- paste( unique(df$alllab), unique(df$nlab) )
+    if (unique(df$alllab) == "true") unlab <- "sham"
+    else unlab <- "unlab"
+    nlab <- unique(df$nlab)
+    labcond <- paste( unlab, "#lab:", nlab )
     anglerange <- unique(df$anglerange)
     subj <- unique( df$subjid )
+    
     if (length( unique ( df$resp ) ) < 2) {
         warning( paste("Subject",subj,"always gave the same response.") )
         return (data.frame())
@@ -53,8 +58,10 @@ fits.table <- function(df, withplot=F) {
                unimodcoeff=unimodcoeff, bimodcoeff=bimodcoeff,
                winnercoeff=winnercoeff, twodAngle=twod.angle,
                twodBimod=twod.bimod, twodNoise=twod.noise, twodBias=twod.bias,
-               axis=axis, anglerange=anglerange, labcond=labcond )
+               axis=axis, anglerange=anglerange, labcond=labcond, unlab=unlab,
+               nlab=nlab )
 }
 
 fits <- ddply( testtrials, ~ subjid, fits.table, .parallel=T)
 
+head( testtrials )

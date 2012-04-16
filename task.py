@@ -2,8 +2,8 @@
 import numpy as np
 import numpy.random as nprand
 
-VERSION = 1.4
-NCONDS = 3
+VERSION = 1.5
+NCONDS = 1
 NCOUNTERS = 2
 
 def bounded(x, bounds=[0,1]):
@@ -150,19 +150,36 @@ class tvTask:
         
         teststims = []
         trainstims = []
+        
+        if self.testform == "grid":
+            gridside = np.sqrt(self.ntest)
+            assert (gridside**2) == self.ntest, "Number of test items must be square!"
+            teststims = [[x, y, np.nan, np.nan] 
+                         for x in np.linspace(0, 1, gridside) 
+                         for y in np.linspace(0, 1, gridside)]
+        
         # 10  rectangles
         for i in range(len(layout)):
+            if self.testform == "bimodal":
+                ntest = layout[i] * testreps
+                testcoords = random_coords_in_rect( rects[i], ntest )
+                teststims.append( list(testcoords[j]) + [np.nan, i] )
+            elif self.testform == "grid":
+                # add in grid markers where applicable
+                for j in xrange(len(teststims)):
+                    if teststims[j][0] >= rects[i][0][0] and teststims[j][0] <= rects[i][0][1]:
+                        if teststims[j][1] >= rects[i][1][0] and teststims[j][1] <= rects[i][1][1]:
+                            teststims[j][-1] = i
+            
             ntrain = layout[i] * trainreps
-            ntest = layout[i] * testreps
             if self.alllab and not (i in [0,9]):
                 traincoords = [(np.nan, np.nan) for _ in xrange( ntrain )]
             else:
                 traincoords = random_coords_in_rect( rects[i], ntrain )
-            testcoords = random_coords_in_rect( rects[i], ntest )
+            
 
             # Most TVs are unlabeled, so we start with those and then add the others
             trainlabels = [np.nan for _ in xrange(ntrain)]
-            testlabels = [np.nan for _ in xrange(ntest)]
             # Add in labels to training if we're in a labeled area
             if i == 0:
                 assert (self.nlab/2) <= len(trainlabels), "Too many labels for the labeled box!"
@@ -172,8 +189,6 @@ class tvTask:
             
             for j in xrange(len(traincoords)):
                 trainstims.append( list(traincoords[j]) + [trainlabels[j], i] )
-            for j in xrange(len(testcoords)):
-                teststims.append( list(testcoords[j]) + [testlabels[j], i] )
         
         nprand.shuffle( trainstims )
         nprand.shuffle( teststims )
@@ -190,13 +205,15 @@ class tvTask:
         #nprand.shuffle( lastten )
         #trainstims = rest + lastten
         
-        unlab1 = [ stim for stim in teststims if np.isnan( stim[2] ) and stim[3]<5 ]
-        unlab2 = [ stim for stim in teststims if np.isnan( stim[2] ) and stim[3]>=5 ]
-        nprand.shuffle( unlab1 )
-        nprand.shuffle( unlab2 )
-        assert self.ntest % 2 == 0, "Number of test items must be even"
-        teststims = unlab1[:self.ntest/2] + unlab2[:self.ntest/2]
-        nprand.shuffle( teststims )
+        if self.testform == "bimodal":
+            unlab1 = [ stim for stim in teststims if np.isnan( stim[2] ) and stim[3]<5 ]
+            unlab2 = [ stim for stim in teststims if np.isnan( stim[2] ) and stim[3]>=5 ]
+            nprand.shuffle( unlab1 )
+            nprand.shuffle( unlab2 )
+            assert self.ntest % 2 == 0, "Number of test items must be even"
+            teststims = unlab1[:self.ntest/2] + unlab2[:self.ntest/2]
+            nprand.shuffle( teststims )
+        
         if self.respondtrain == "no":
             trainstims = [ ["obs"] + row for row in trainstims ]
             teststims = [ ["choice"] + row for row in teststims ]
@@ -226,9 +243,9 @@ def condition_builder(condnum, counternum):
          order = "interspersed",
          nbasis = 112,
          nlab = nlab,
-         ntest = 50,
+         ntest = 49,
          alllab = alllab,
-         testform = "bimodal",
+         testform = "grid",
          respondtrain = "no",
          axis = axis,
          swapcorners = swapcorners, 
