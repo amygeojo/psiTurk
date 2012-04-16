@@ -191,20 +191,11 @@ def get_random_condition():
     numconds = task.NCONDS
     
     participants = Participant.query.\
-                   filter(Participant.codeversion >= 1.2).\
-                   filter(or_(Participant.endhit != None, 
-                           Participant.beginhit > starttime)).all()
-    conds = []
-    for p in participants:
-        if p.codeversion == '1.2':
-            conds.append(0)
-        elif p.codeversion == '1.3':
-            conds.append(2)
-        elif p.codeversion == '1.4':
-            conds.append( p.cond )
-        else:
-            print "Hmm, got a funny looking partcipant: ", p
-    subj_cond = choose_least_used(numconds, conds )
+                   filter(Participant.codeversion == CODE_VERSION).\
+                   filter(Participant.endhit != None, 
+                          Participant.beginhit > starttime)).\
+                   all()
+    subj_cond = choose_least_used(numcounts, [p.cond for p in participants])
     print "given ", conds, " chose ", subj_cond
     
     return subj_cond
@@ -213,21 +204,11 @@ def get_random_counterbalance(cond):
     starttime = datetime.datetime.now() + datetime.timedelta(minutes=-30)
     numcounts = task.NCOUNTERS
     participants = Participant.query.\
-                 filter(Participant.codeversion == CODE_VERSION).\
-                 filter(or_(Participant.endhit != None, 
-                            Participant.beginhit > starttime))
-    counters = []
-    for p in participants:
-        if p.codeversion == '1.2':
-            if cond == 0:
-                counters.append(p.counterbalance)
-        elif p.codeversion == '1.3':
-            if cond == 2:
-                counters.append(p.counterbalance)
-        elif p.codeversion == '1.4':
-            counters.append( p.counterbalance )
-        else:
-            print "Hmm, got a funny looking partcipant: ", p
+                   filter(Participant.codeversion == CODE_VERSION).\
+                   filter(Participant.cond == cond).\
+                   filter(Participant.endhit != None, 
+                          Participant.beginhit > starttime)).\
+                   all()
     subj_counter = choose_least_used(numcounts, [p.counterbalance for p in participants])
     print "given ", counters, " chose ", subj_counter
     return subj_counter
@@ -388,16 +369,14 @@ def start_exp():
     numrecs = len(matches)
     if numrecs == 0:
         
-        # Choose condition
+        # Choose condition and counterbalance
         subj_cond = get_random_condition()
-        
-        # Choose counterbalance
         subj_counter = get_random_counterbalance(subj_cond)
         
-        if not request.remote_addr:
+        if not request['remote_addr']:
             myip = "UKNOWNIP"
         else:
-            myip = request.remote_addr
+            myip = request['remote_addr']
         
         # set condition here and insert into database
         part = Participant( hitId, myip, assignmentId, workerId, subj_cond, subj_counter)
@@ -613,7 +592,6 @@ def completed():
     user.debriefed = agreed == 'true'
     db_session.add(user)
     db_session.commit()
-    
     return render_template('closepopup.html')
 
 #------------------------------------------------------
