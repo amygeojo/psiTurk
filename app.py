@@ -455,7 +455,7 @@ def procitems(items):
         bimod = item[1]
         unimod = item[2]
         abstractChannel = item[3]
-        rectname = {0:"one", 1:"two", 2:"three", 3:"four", 4:"five", 5:"six", 6:"seven", 7:"eight", 8:"nine", 9:"ten"}[item[4]]
+        #rectname = {0:"one", 1:"two", 2:"three", 3:"four", 4:"five", 5:"six", 6:"seven", 7:"eight", 8:"nine", 9:"ten"}[item[4]]
         length = item[5]
         angle = item[6]
         if np.isnan(abstractChannel):
@@ -469,8 +469,7 @@ def procitems(items):
             length = length,
             angle = angle,
             abstractChannel = abstractChannel,
-            channel = channel,
-            rect = rectname))
+            channel = channel))
     return ret
 
 @app.route('/items')

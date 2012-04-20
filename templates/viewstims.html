@@ -21,7 +21,7 @@
         var size = 100, anglesize = 200,
             padding = 19.5;
         
-        d3.json("http://puncture.psych.nyu.edu:5001/items?cond=3&count=0",
+        d3.json("http://localhost:5001/items?cond=1&count=0",
             function(ret) {
                 makeplots( ret.train, "#train" );
                 makeplots( ret.test, "#test" );
@@ -46,7 +46,7 @@
                 }
                 if ( trait == "length" ) {
                   // domain = [d3.min(stims, value), d3.max(stims, value)],
-                  domain = [50,150]
+                  domain = [30,150]
                   xrange = [ padding/2, size - padding/2 ];
                   yrange = [ padding/2, size - padding/2 ].slice().reverse();
                 }
@@ -114,7 +114,7 @@
               cell.selectAll("circle")
                   .data(stims)
                 .enter().append("circle")
-                  .attr("class", function(d) { return d.rect; })
+                  .attr("class", function(d) { return d.channel; })
                   .attr("cx", function(d) { return x[p.x](d[p.x]); })
                   .attr("cy", function(d) { return y[p.y](d[p.y]); })
                   .attr("r", 3);
