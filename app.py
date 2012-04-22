@@ -19,6 +19,7 @@ from config import config
 # Actual task file
 import task
 
+os.chdir('/srv/wsgi/tvTurk')
 
 # Set up logging
 logfilepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -398,6 +399,7 @@ def start_exp():
     taskparams = task.condition_builder(part.cond, part.counterbalance)
     taskobject = task.tvTask( ** taskparams )
     
+    logging.warn(os.getcwd())
     return render_template('exp.html',
                            subjnum = part.subjid, 
                            subjinfo = [part.subjid] + taskparams.values(),
