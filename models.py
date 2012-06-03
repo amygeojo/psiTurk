@@ -4,9 +4,10 @@ from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text
 
 from db import Base
 from config import config
-from task import VERSION
+
 
 TABLENAME = config.get('Database Parameters', 'table_name')
+CODE_VERSION = config.getfloat('Task Parameters', 'code_version')
 
 class Participant(Base):
     """
@@ -37,7 +38,7 @@ class Participant(Base):
         self.cond = cond
         self.counterbalance = counterbalance
         self.status = 1
-        self.codeversion = VERSION
+        self.codeversion = CODE_VERSION
         self.debriefed = False
         self.beginhit = datetime.datetime.now()
     

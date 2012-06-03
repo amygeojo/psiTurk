@@ -2,9 +2,6 @@
 import numpy as np
 import numpy.random as nprand
 
-VERSION = 1.5
-NCONDS = 4
-NCOUNTERS = 2
 
 def bounded(x, bounds=[0,1]):
     if not np.isnan(x):

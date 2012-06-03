@@ -34,7 +34,8 @@ logging.basicConfig( filename=logfilepath, format='%(asctime)s %(message)s', lev
 
 # constants
 DEPLOYMENT_ENV = config.getint('User Preferences', 'loglevel')
-CODE_VERSION = task.VERSION
+CODE_VERSION = config.getfloat('Task Parameters', 'code_version')
+
 
 # Database configuration and constants
 TABLENAME = config.get('Database Parameters', 'table_name')
@@ -158,7 +159,6 @@ def get_people(people):
 #----------------------------------------------
 # Experiment counterbalancing code.
 #----------------------------------------------
-
 
 def get_random_condcount():
     """

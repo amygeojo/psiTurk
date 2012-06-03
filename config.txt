@@ -36,14 +36,14 @@ Approve_Requirement: 95   ; What % of previous assignments have been approved.
 
 ; Example MySQL url: mysql://user:password@domain:port/dbname
 ; MySQL url using MAMP: mysql://mturk@localhost/mturk?unix_socket=/Applications/MAMP/tmp/mysql/mysql.sock
-database_url: mysql://turk:●●●●●●●●●●●●●●●●@localhost/turk_tv 
-table_name: tv_v1
 
-[Task Parameters]
-code_version: 1.0
+; I think these are the puncture local settings:
+; database_url: mysql://turk:FxvGRvX4bv5vN3hu@localhost/turk_demo
+; table_name: turkdemo
 
-num_conds: 1
-num_counters: 1
+; Smash settings:
+database_url: mysql://lab:2research@gureckislab.org:3306/mt_experiments
+table_name: tvexp
 
 [Server Parameters]
 
@@ -55,6 +55,13 @@ debug: true             ; NEVER leave this on when exposing the server to the pu
 
 login_username: examplename
 login_pw: examplepassword
+
+[Task Parameters]
+
+code_version: 1.5
+
+num_conds: 4            ; Number of conditions of interest
+num_counters: 2         ; Number of counterbalance alternatives
 
 [User Preferences]
 ; These are noncritical preferences related to how the software operates.
