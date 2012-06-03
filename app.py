@@ -192,6 +192,15 @@ def get_random_condcount():
             counts[(cond, counter)] = 0
     for p in participants:
         counts[(p.cond, p.counterbalance)] += 1
+    print "From db: ", counts
+    
+    # Subtract these off:
+    adjustments = Counter({(0L, 0L): 7, (0L, 1L): 2,
+                           (1L, 0L): 0, (1L, 1L): 1,
+                           (2L, 0L): 1, (2L, 1L): 1,
+                           (3L, 0L): 0, (3L, 1L): 2})
+    counts.subtract( adjustments )
+    
     mincount = min( counts.values() )
     minima = [hash for hash, count in counts.iteritems() if count == mincount]
     chosen = choice(minima)
