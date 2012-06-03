@@ -8,8 +8,8 @@
 ; If you already have an AWS account, your key can be retreived from:
 ; http://aws-portal.amazon.com/gp/aws/developer/account/index.html?action=access-key
 
-aws_access_key_id: YourAccessKeyId
-aws_secret_access_key: YourSecretAccessKey
+aws_access_key_id: AKIAI5GNWGIA4KM76PRA
+aws_secret_access_key: PlJ3gbnraPlflTCTkAad7x5+ZHs+ettrXr4kM2el
 
 
 [HIT Configuration]
@@ -18,13 +18,13 @@ aws_secret_access_key: YourSecretAccessKey
 using_sandbox: true
 
 ; Basic task setup
-title: "Perceptual Reaction Time"
-description: "Make a series of perceptual judgments."
-keywords: "Perception, Psychology"
-question_url: http://localhost:5001/mturk  ; URL turkers will see in your ad
-max_assignments: 10     ; Number of turkers who can accept this HIT
+title: "Call for participants: TV Antenna game"
+description: "A Psychology study about judgment and inference."
+keywords: "Cognition, Perception, Psychology"
+question_url: http://puncture.psych.nyu.edu:8000/mturk  ; URL turkers will see in your ad
+max_assignments: 6      ; Number of turkers who can accept this HIT
 HIT_lifetime: 24        ; In hours, how long the HIT will be available
-reward: .1              ; In dollars
+reward: 1               ; In dollars
 duration: 2             ; How long turkers have to complete once accepted.
 
 ; Requirements for workers:
@@ -53,8 +53,8 @@ support_IE: true        ; Whether to support Internet Explorer
 
 debug: true             ; NEVER leave this on when exposing the server to the public.
 
-login_username: examplename
-login_pw: examplepassword
+login_username: lab
+login_pw: 2research
 
 [Task Parameters]
 
