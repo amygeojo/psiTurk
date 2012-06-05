@@ -356,7 +356,6 @@ def start_exp():
     workerId = request.args['workerId']
     print hitId, assignmentId, workerId
     
-    
     # check first to see if this hitId or assignmentId exists.  if so check to see if inExp is set
     matches = Participant.query.\
                         filter(Participant.hitid == hitId).\
