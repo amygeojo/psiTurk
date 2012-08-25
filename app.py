@@ -1,12 +1,13 @@
 
 import os
-import datetime
+import datetime, urllib, urlparse
 import logging
 from functools import wraps
 from random import choice
 from collections import Counter
 
 # Importing flask
+import flask
 from flask import Flask, render_template, request, Response, make_response
 
 # Database setup
@@ -314,8 +315,14 @@ def start_exp():
     """
     Serves up the experiment applet.
     """
+    
     if not (request.args.has_key('hitId') and request.args.has_key('assignmentId') and request.args.has_key('workerId')):
         raise ExperimentError( 'hit_assign_worker_id_not_set_in_exp' )
+    expserver = "puncture.psych.nyu.edu:8080"
+    exppath = "/exp"
+    targeturl = urlparse.urlunparse(("http", expserver, exppath, "", urllib.urlencode(request.args), ""))
+    resp = flask.redirect(targeturl, code=303)
+    return resp
     hitId = request.args['hitId']
     assignmentId = request.args['assignmentId']
     workerId = request.args['workerId']
@@ -441,7 +448,7 @@ def savedata():
     
     return render_template('debriefing.html', subjid=subjid)
 
-@app.route('/complete', methods=['POST'])
+@app.route('/complete', methods=['GET'])
 def completed():
     """
     This is sent in when the participant completes the debriefing. The
@@ -450,17 +457,15 @@ def completed():
     """
     print "accessing the /complete route"
     print request.form.keys()
-    if not (request.form.has_key('subjid') and request.form.has_key('agree')):
+    if not request.args.has_key('assignmentId'):
         raise ExperimentError('improper_inputs')
-    subjid = request.form['subjid']
-    agreed = request.form['agree']  
-    print subjid, agreed
+    assignmentId = request.args['assignmentId']
+    print assignmentId
     
     user = Participant.query.\
-            filter(Participant.subjid == subjid).\
+            filter(Participant.assignmentid == assignmentId).\
             one()
     user.status = DEBRIEFED
-    user.debriefed = agreed == 'true'
     db_session.add(user)
     db_session.commit()
     return render_template('closepopup.html')
