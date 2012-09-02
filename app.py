@@ -294,16 +294,10 @@ def start_exp():
     
     if not (request.args.has_key('hitId') and request.args.has_key('assignmentId') and request.args.has_key('workerId')):
         raise ExperimentError( 'hit_assign_worker_id_not_set_in_exp' )
-    expserver = "puncture.psych.nyu.edu:8080"
-    exppath = "/exp"
-    targeturl = urlparse.urlunparse(("http", expserver, exppath, "", urllib.urlencode(request.args), ""))
-    resp = flask.redirect(targeturl, code=303)
-    return resp
     hitId = request.args['hitId']
     assignmentId = request.args['assignmentId']
     workerId = request.args['workerId']
     print hitId, assignmentId, workerId
-    
     
     # check first to see if this hitId or assignmentId exists.  if so check to see if inExp is set
     matches = Participant.query.\
@@ -335,7 +329,11 @@ def start_exp():
         print "Error, hit/assignment appears in database more than once (serious problem)"
         raise ExperimentError( 'hit_assign_appears_in_database_more_than_once' )
     
-    return render_template('exp.html', assignmentId = part.assignmentid, cond=part.cond, counter=part.counterbalance )
+    expserver = "puncture.psych.nyu.edu:8080"
+    exppath = "/exp"
+    targeturl = urlparse.urlunparse(("http", expserver, exppath, "", urllib.urlencode(request.args), ""))
+    resp = flask.redirect(targeturl, code=303)
+    return resp
 
 @app.route('/inexp', methods=['POST'])
 def enterexp():
@@ -424,7 +422,7 @@ def savedata():
     
     return render_template('debriefing.html', assignmentId=assignmentId)
 
-@app.route('/complete', methods=['GET'])
+@app.route('/complete', methods=['GET', 'POST'])
 def completed():
     """
     This is sent in when the participant completes the debriefing. The
@@ -432,19 +430,17 @@ def completed():
     adequately debriefed, and that response is logged in the database.
     """
     print "accessing the /complete route"
-    print request.form.keys()
-    if not (request.form.has_key('assignmentid') and request.form.has_key('agree')):
-        raise ExperimentError('improper_inputs')
-    assignmentId = request.form['assignmentid']
-    agreed = request.form['agree']  
-    print assignmentId, agreed
+    assignmentId = request.args['assignmentId']
+    print "assignment: ", assignmentId
     
     user = Participant.query.\
             filter(Participant.assignmentid == assignmentId).\
             one()
     user.status = DEBRIEFED
+    print "adding"
     db_session.add(user)
     db_session.commit()
+    print "closing popup"
     return render_template('closepopup.html')
 
 #------------------------------------------------------
