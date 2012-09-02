@@ -19,16 +19,16 @@ from config import config
 
 # Set up logging
 logfilepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                              'server.log')
+                           config.get("Server Parameters", "logfile"))
 
 loglevels = [logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL]
-loglevel = loglevels[config.getint('User Preferences', 'loglevel')]
+loglevel = loglevels[config.getint('Server Parameters', 'loglevel')]
 logging.basicConfig( filename=logfilepath, format='%(asctime)s %(message)s', level=loglevel )
 
 # config.get( 'Mechanical Turk Info', 'aws_secret_access_key' )
 
 # constants
-DEPLOYMENT_ENV = config.getint('User Preferences', 'loglevel')
+USING_SANDBOX = config.getboolean('HIT Configuration', 'using_sandbox')
 CODE_VERSION = config.get('Task Parameters', 'code_version')
 
 # Database configuration and constants
@@ -137,7 +137,7 @@ def get_people(people):
         return []
     for record in people:
         person = {}
-        for field in ['subjid', 'ipaddress', 'hitid', 'assignmentid',
+        for field in ['ipaddress', 'hitid', 'assignmentid',
                       'workerid', 'cond', 'counterbalance',
                       'beginhit','beginexp', 'endhit', 'status', 'datastring']:
             if field=='datastring':
@@ -154,8 +154,6 @@ def get_people(people):
 #----------------------------------------------
 # Experiment counterbalancing code.
 #----------------------------------------------
-
-
 def get_random_condcount():
     """
     HITs can be in one of three states:
@@ -200,28 +198,6 @@ def get_random_condcount():
 # routes
 #----------------------------------------------
 
-@app.route('/debug', methods=['GET'])
-def start_exp_debug():
-    # this serves up the experiment applet in debug mode
-    if "cond" in request.args.keys():
-        subj_cond = int( request.args['cond'] );
-    else:
-        import random
-        subj_cond = random.randrange(12);
-    if "subjid" in request.args.keys():
-        counterbalance = int( request.args['counterbalance'] );
-    else:
-        import random
-        counterbalance = random.randrange(384);
-    return render_template('exp.html', 
-                           subj_num = -1, 
-                           traintype = 0 if subj_cond<6 else 1, 
-                           rule = subj_cond%6, 
-                           dimorder = counterbalance%24, 
-                           dimvals = counterbalance//24,
-                           skipto = request.args['skipto'] if 'skipto' in request.args else ''
-                          )
-
 @app.route('/mturk', methods=['GET'])
 def mturkroute():
     """
@@ -244,6 +220,7 @@ def mturkroute():
     # Person has accepted the HIT, entering them into the database.
     hitId = request.args['hitId']
     assignmentId = request.args['assignmentId']
+    already_in_db = False
     if request.args.has_key('workerId'):
         workerId = request.args['workerId']
         # first check if this workerId has completed the task before (v1)
@@ -254,11 +231,10 @@ def mturkroute():
         
         if nrecords > 0:
             # already completed task
-            raise ExperimentError('already_did_exp_hit')
+            already_in_db = True
     else:
         # If worker has not accepted the hit:
         workerId = None
-    print hitId, assignmentId, workerId
     try:
         part = Participant.query.\
                            filter(Participant.hitid == hitId).\
@@ -266,31 +242,31 @@ def mturkroute():
                            filter(Participant.workerid == workerId).\
                            one()
         status = part.status
-        subj_id = part.subjid
     except:
         status = None
-        subj_id = None
     
-    if status == ALLOCATED or not status:
-        # Participant has not yet agreed to the consent. They might not
-        # even have accepted the HIT. The mturkindex template will treat
-        # them appropriately regardless.
-        return render_template('mturkindex.html', 
-                               hitid = hitId, 
-                               assignmentid = assignmentId, 
-                               workerid = workerId)
-    elif status == STARTED:
+    if status == STARTED:
         # Once participants have finished the instructions, we do not allow
         # them to start the task again.
         raise ExperimentError('already_started_exp_mturk')
     elif status == COMPLETED:
         # They've done the whole task, but haven't signed the debriefing yet.
         return render_template('debriefing.html', 
-                               subjid = subj_id)
+                               assignmentId = assignmentId)
     elif status == DEBRIEFED:
         # They've done the debriefing but perhaps haven't submitted the HIT yet..
         return render_template('thanks.html', 
-                               target_env=DEPLOYMENT_ENV, 
+                               using_sandbox=USING_SANDBOX, 
+                               hitid = hitId, 
+                               assignmentid = assignmentId, 
+                               workerid = workerId)
+    elif already_in_db:
+        raise ExperimentError('already_did_exp_hit')
+    elif status == ALLOCATED or not status:
+        # Participant has not yet agreed to the consent. They might not
+        # even have accepted the HIT. The mturkindex template will treat
+        # them appropriately regardless.
+        return render_template('mturkindex.html', 
                                hitid = hitId, 
                                assignmentid = assignmentId, 
                                workerid = workerId)
@@ -352,14 +328,14 @@ def start_exp():
         db_session.commit()
     
     elif numrecs==1:
-        part = matches[0].subjid
+        part = matches[0]
         if part.status>=STARTED: # in experiment (or later) can't restart at this point
             raise ExperimentError( 'already_started_exp' )
     else:
         print "Error, hit/assignment appears in database more than once (serious problem)"
         raise ExperimentError( 'hit_assign_appears_in_database_more_than_once' )
     
-    return render_template('exp.html', subj_num = part.subjid, order=part.counterbalance )
+    return render_template('exp.html', assignmentId = part.assignmentid, cond=part.cond, counter=part.counterbalance )
 
 @app.route('/inexp', methods=['POST'])
 def enterexp():
@@ -371,11 +347,11 @@ def enterexp():
     referesh to start over).
     """
     print "/inexp"
-    if not request.form.has_key('subjId'):
+    if not request.form.has_key('assignmentid'):
         raise ExperimentError('improper_inputs')
-    subjid = request.form['subjId']
+    assignmentId = request.form['assignmentid']
     user = Participant.query.\
-            filter(Participant.subjid == subjid).\
+            filter(Participant.assignmentid == assignmentId).\
             one()
     user.status = STARTED
     user.beginexp = datetime.datetime.now()
@@ -391,12 +367,12 @@ def inexpsave():
     """
     print "accessing the /inexpsave route"
     print request.form.keys()
-    if request.form.has_key('subjId') and request.form.has_key('dataString'):
-        subj_id = request.form['subjId']
+    if request.form.has_key('assignmentid') and request.form.has_key('dataString'):
+        assignmentId = request.form['assignmentid']
         datastring = request.form['dataString']  
-        print "getting the save data", subj_id, datastring
+        print "getting the save data", assignmentId, datastring
         user = Participant.query.\
-                filter(Participant.subjid == subj_id).\
+                filter(Participant.assignmentid == assignmentId).\
                 one()
         user.datastring = datastring
         user.status = STARTED
@@ -411,12 +387,12 @@ def quitter():
     """
     print "accessing the /quitter route"
     print request.form.keys()
-    if request.form.has_key('subjId') and request.form.has_key('dataString'):
-        subjid = request.form['subjId']
+    if request.form.has_key('assignmentid') and request.form.has_key('dataString'):
+        assignmentId = request.form['assignmentid']
         datastring = request.form['dataString']  
-        print "getting the save data", subjid, datastring
+        print "getting the save data", assignmentId, datastring
         user = Participant.query.\
-                filter(Participant.subjid == subjid).\
+                filter(Participant.assignmentid == assignmentId).\
                 one()
         user.datastring = datastring
         user.status = QUITEARLY
@@ -431,14 +407,14 @@ def savedata():
     (long) string. They will receive a debreifing back.
     """
     print request.form.keys()
-    if not (request.form.has_key('subjid') and request.form.has_key('data')):
+    if not (request.form.has_key('assignmentid') and request.form.has_key('data')):
         raise ExperimentError('improper_inputs')
-    subjid = int(request.form['subjid'])
+    assignmentId = request.form['assignmentid']
     datastring = request.form['data']
-    print subjid, datastring
+    print assignmentId, datastring
     
     user = Participant.query.\
-            filter(Participant.subjid == subjid).\
+            filter(Participant.assignmentid == assignmentId).\
             one()
     user.status = COMPLETED
     user.datastring = datastring
@@ -446,7 +422,7 @@ def savedata():
     db_session.add(user)
     db_session.commit()
     
-    return render_template('debriefing.html', subjid=subjid)
+    return render_template('debriefing.html', assignmentId=assignmentId)
 
 @app.route('/complete', methods=['GET'])
 def completed():
@@ -457,10 +433,11 @@ def completed():
     """
     print "accessing the /complete route"
     print request.form.keys()
-    if not request.args.has_key('assignmentId'):
+    if not (request.form.has_key('assignmentid') and request.form.has_key('agree')):
         raise ExperimentError('improper_inputs')
-    assignmentId = request.args['assignmentId']
-    print assignmentId
+    assignmentId = request.form['assignmentid']
+    agreed = request.form['agree']  
+    print assignmentId, agreed
     
     user = Participant.query.\
             filter(Participant.assignmentid == assignmentId).\
@@ -481,7 +458,7 @@ def viewdata():
     authentication.
     """
     people = Participant.query.\
-              order_by(Participant.subjid).\
+              order_by(Participant.assignmentid).\
               all()
     print people
     people = get_people(people)
@@ -497,11 +474,10 @@ def updatestatus():
         field = request.form['id']
         value = request.form['value']
         print field, value
-        [tmp, field, subjid] = field.split('_')
-        id = int(id)
+        [tmp, field, assignmentId] = field.split('_')
         
         user = Participant.query.\
-                filter(Participant.subjid == subjid).\
+                filter(Participant.assignmentid == assignmentId).\
                 one()
         if field=='status':
             user.status = value
