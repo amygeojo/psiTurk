@@ -310,6 +310,7 @@ def start_exp():
         
         # Choose condition and counterbalance
         subj_cond, subj_counter = get_random_condcount()
+        print "Assigned subj_cond", subj_cond
         
         if not request.remote_addr:
             myip = "UKNOWNIP"
@@ -325,13 +326,19 @@ def start_exp():
         part = matches[0]
         if part.status>=STARTED: # in experiment (or later) can't restart at this point
             raise ExperimentError( 'already_started_exp' )
+        else:
+            subj_cond = part.cond
+            subj_counter = part.counterbalance
     else:
         print "Error, hit/assignment appears in database more than once (serious problem)"
         raise ExperimentError( 'hit_assign_appears_in_database_more_than_once' )
     
     expserver = "puncture.psych.nyu.edu:8080"
     exppath = "/exp"
-    targeturl = urlparse.urlunparse(("http", expserver, exppath, "", urllib.urlencode(request.args), ""))
+    arguments = dict( assignmentId=assignmentId, workerId=workerId, hitId=hitId, cond=subj_cond, counter=subj_counter  )
+    print arguments
+    targeturl = urlparse.urlunparse(("http", expserver, exppath, "", urllib.urlencode(arguments), ""))
+
     resp = flask.redirect(targeturl, code=303)
     return resp
 
@@ -430,17 +437,18 @@ def completed():
     adequately debriefed, and that response is logged in the database.
     """
     print "accessing the /complete route"
-    assignmentId = request.args['assignmentId']
-    print "assignment: ", assignmentId
+    try:
+        assignmentId = request.args['assignmentId']
+    except:
+        raise ExperimentError('improper_inputs')
     
     user = Participant.query.\
             filter(Participant.assignmentid == assignmentId).\
             one()
     user.status = DEBRIEFED
-    print "adding"
+    user.endhit = datetime.datetime.now()
     db_session.add(user)
     db_session.commit()
-    print "closing popup"
     return render_template('closepopup.html')
 
 #------------------------------------------------------
