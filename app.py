@@ -4,7 +4,7 @@ import datetime, urllib, urlparse
 import logging
 from functools import wraps
 from random import choice
-from collections import Counter
+from counter import Counter
 
 # Importing flask
 import flask
@@ -333,7 +333,7 @@ def start_exp():
         print "Error, hit/assignment appears in database more than once (serious problem)"
         raise ExperimentError( 'hit_assign_appears_in_database_more_than_once' )
     
-    expserver = "puncture.psych.nyu.edu:8080"
+    expserver = "frylock.psych.nyu.edu:8080"
     exppath = "/exp"
     arguments = dict( assignmentId=assignmentId, workerId=workerId, hitId=hitId, cond=subj_cond, counter=subj_counter  )
     print arguments

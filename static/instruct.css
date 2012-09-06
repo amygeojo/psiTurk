@@ -30,9 +30,10 @@ input {
     font-size: 13pt;
 }
 
-
-#main {
+.consent p {
+	font-size: .8em;
 }
+
 
 .legal {
     font-size: 11px;
