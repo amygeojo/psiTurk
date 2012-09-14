@@ -177,13 +177,14 @@ def get_random_condcount():
                    filter(or_(Participant.status == 4, 
                               Participant.status == 5, 
                               Participant.beginhit > starttime)).\
-                   filter(Participant.cond<4).\
+                   filter(Participant.cond<numconds).\
                    all()
     counts = Counter()
     for cond in range(numconds):
         for counter in range(numcounts):
             counts[(cond, counter)] = 0
     for p in participants:
+        print p
         counts[(p.cond, p.counterbalance)] += 1
     mincount = min( counts.values() )
     minima = [hash for hash, count in counts.iteritems() if count == mincount]
@@ -333,7 +334,7 @@ def start_exp():
         print "Error, hit/assignment appears in database more than once (serious problem)"
         raise ExperimentError( 'hit_assign_appears_in_database_more_than_once' )
     
-    expserver = "frylock.psych.nyu.edu:8080"
+    expserver = "frylock.psych.nyu.edu/exp"
     exppath = "/exp"
     arguments = dict( assignmentId=assignmentId, workerId=workerId, hitId=hitId, cond=subj_cond, counter=subj_counter  )
     print arguments
