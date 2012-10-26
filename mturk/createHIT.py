@@ -83,5 +83,8 @@ if __name__ == '__main__':
     else:
         host = 'mechanicalturk.amazonaws.com'
     connection = TurkConnect( host )
+    print "Previous balance:"
     print connection.checkbalance()
     connection.createhit()
+    print "Current balance:"
+    print connection.checkbalance()
