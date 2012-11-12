@@ -179,10 +179,19 @@ def get_random_condcount():
                               Participant.beginhit > starttime)).\
                    filter(Participant.cond<numconds).\
                    all()
+    # Meaning of various bits:
+    # 1: confidence in causes
+    # 2: confidence in brs
+    # 3: instructed causal strength
+    # 4: instructed base rates of causes
+    # 5: control condition (overrides 3 and 4)
+    # Initially, 3-5 are all 0; we alternate between 01 and 10 for first two
+    conditions_running = [1,2,3]
     counts = Counter()
     for cond in range(numconds):
-        for counter in range(numcounts):
-            counts[(cond, counter)] = 0
+        if cond in conditions_running:
+            for counter in range(numcounts):
+                counts[(cond, counter)] = 0
     for p in participants:
         print p
         counts[(p.cond, p.counterbalance)] += 1
