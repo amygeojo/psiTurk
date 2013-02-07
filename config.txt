@@ -58,9 +58,9 @@ login_pw: 2research
 
 [Task Parameters]
 
-code_version: 1.5
+code_version: 1.8c1
 
-num_conds: 4            ; Number of conditions of interest
+num_conds: 1            ; Number of conditions of interest
 num_counters: 2         ; Number of counterbalance alternatives
 
 [User Preferences]

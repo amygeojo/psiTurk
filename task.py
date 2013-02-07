@@ -228,16 +228,8 @@ def condition_builder(condnum, counternum):
     swapcorners = [False, True][nprand.randint(2)]
     swapidentity = [False, True][nprand.randint(2)]
     axis = ["length", "angle"][counternum]
-    if condnum == 0:
-        nlab = 0
-    elif condnum == 3:
-        nlab = 4
-    else:
-        nlab = 16
-    if condnum == 2:
-        alllab = True
-    else:
-        alllab = False
+    nlab = 16
+    alllab = False
     return dict(
          order = "interspersed",
          nbasis = 112,
