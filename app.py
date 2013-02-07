@@ -1,5 +1,6 @@
 
 import os
+import platform
 import datetime
 import logging
 from functools import wraps, update_wrapper
@@ -20,7 +21,8 @@ from config import config
 # Actual task file
 import task
 
-os.chdir('/srv/wsgi/tvTurk')
+if platform.uname()[1] == "puncture":
+    os.chdir('/srv/wsgi/tvTurk')
 
 # Set up logging
 logfilepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -48,6 +50,7 @@ COMPLETED = 3
 DEBRIEFED = 4
 CREDITED = 5
 QUITEARLY = 6
+REJECTED = 7
 
 
 app = Flask(__name__)
@@ -192,15 +195,6 @@ def get_random_condcount():
             counts[(cond, counter)] = 0
     for p in participants:
         counts[(p.cond, p.counterbalance)] += 1
-    print "From db: ", counts
-    
-    # Subtract these off:
-    adjustments = Counter({(0L, 0L): 7, (0L, 1L): 2,
-                           (1L, 0L): 0, (1L, 1L): 1,
-                           (2L, 0L): 1, (2L, 1L): 1,
-                           (3L, 0L): 0, (3L, 1L): 2})
-    counts.subtract( adjustments )
-    
     mincount = min( counts.values() )
     minima = [hash for hash, count in counts.iteritems() if count == mincount]
     chosen = choice(minima)
@@ -213,6 +207,14 @@ def get_random_condcount():
 #----------------------------------------------
 # routes
 #----------------------------------------------
+
+@app.route('/error', methods = ['GET'])
+def give_error():
+    """
+    Just replaces the 500 screen.
+    """
+    return render_template('error.html', errornum=500 )
+
 
 @app.route('/debug', methods = ['GET'])
 def start_exp_debug():
@@ -322,7 +324,7 @@ def give_consent():
     hitId = request.args['hitId']
     assignmentId = request.args['assignmentId']
     workerId = request.args['workerId']
-    print hitId, assignmentId, workerId
+    print "/consent",  hitId, assignmentId, workerId
     return render_template('consent.html', hitid = hitId, assignmentid=assignmentId, workerid=workerId)
 
 def htmlSnippets():
@@ -354,7 +356,7 @@ def start_exp():
     hitId = request.args['hitId']
     assignmentId = request.args['assignmentId']
     workerId = request.args['workerId']
-    print hitId, assignmentId, workerId
+    print "/exp", hitId, assignmentId, workerId
     
     # check first to see if this hitId or assignmentId exists.  if so check to see if inExp is set
     matches = Participant.query.\
@@ -389,7 +391,6 @@ def start_exp():
     taskparams = task.condition_builder(part.cond, part.counterbalance)
     taskobject = task.tvTask( ** taskparams )
     
-    logging.warn(os.getcwd())
     return render_template('exp.html',
                            subjnum = part.subjid, 
                            subjinfo = [part.subjid] + taskparams.values(),
@@ -481,15 +482,17 @@ def enterexp():
     referesh to start over).
     """
     print "/inexp"
-    if request.form.has_key('subjId'):
-        subjid = request.form['subjId']
-        user = Participant.query.\
-                filter(Participant.subjid == subjid).\
-                one()
-        user.status = STARTED
-        user.beginexp = datetime.datetime.now()
-        db_session.add(user)
-        db_session.commit()
+    if not request.form.has_key('subjId'):
+        raise ExperimentError('improper_inputs')
+    subjid = request.form['subjId']
+    user = Participant.query.\
+            filter(Participant.subjid == subjid).\
+            one()
+    user.status = STARTED
+    user.beginexp = datetime.datetime.now()
+    db_session.add(user)
+    db_session.commit()
+    return "Success"
 
 @app.route('/inexpsave', methods = ['POST'])
 def inexpsave():
@@ -523,13 +526,16 @@ def quitter():
         subjid = request.form['subjId']
         datastring = request.form['dataString']  
         print "getting the save data", subjid, datastring
-        user = Participant.query.\
-                filter(Participant.subjid == subjid).\
-                one()
-        user.datastring = datastring
-        user.status = QUITEARLY
-        db_session.add(user)
-        db_session.commit()
+        try:
+            user = Participant.query.\
+                    filter(Participant.subjid == subjid).\
+                    one()
+            user.datastring = datastring
+            user.status = QUITEARLY
+            db_session.add(user)
+            db_session.commit()
+        except:
+            return render_template('error.html', errornum= experiment_errors['hit_assign_worker_id_not_set_in_mturk'])
     return render_template('error.html', errornum= experiment_errors['tried_to_quit'])
 
 @app.route('/predebrief', methods = ['POST'])
@@ -542,7 +548,7 @@ def savedata():
         raise ExperimentError('improper_inputs')
     subjid = int(request.form['subjid'])
     datastring = request.form['data']
-    print subjid, datastring
+    print "/predebrief", subjid, datastring
     
     user = Participant.query.\
             filter(Participant.subjid == subjid).\
