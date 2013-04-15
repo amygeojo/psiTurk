@@ -17,6 +17,8 @@ from sqlalchemy import or_
 
 from config import config
 
+VERBOSE = False  # Only used in debugging mode.
+
 # Set up logging
 logfilepath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                            config.get("Server Parameters", "logfile"))
@@ -177,7 +179,6 @@ def get_random_condcount():
                    filter(or_(Participant.status == 4, 
                               Participant.status == 5, 
                               Participant.beginhit > starttime)).\
-                   filter(Participant.cond<numconds).\
                    all()
     # Meaning of various bits:
     # 1: confidence in causes
@@ -186,15 +187,22 @@ def get_random_condcount():
     # 4: instructed base rates of causes
     # 5: control condition (overrides 3 and 4)
     # Initially, 3-5 are all 0; we alternate between 01 and 10 for first two
-    conditions_running = [1,2,3]
+    conditions_running = [x+12 for x in [1,2,3]]
     counts = Counter()
-    for cond in range(numconds):
-        if cond in conditions_running:
-            for counter in range(numcounts):
-                counts[(cond, counter)] = 0
+    for cond in conditions_running:
+        for counter in xrange(numcounts):
+            counts[(cond, counter)] = 0
     for p in participants:
-        print p
-        counts[(p.cond, p.counterbalance)] += 1
+        condtuple = (p.cond, p.counterbalance)
+        if VERBOSE:
+            print p
+            print condtuple
+            if condtuple in counts.keys():
+                counts[condtuple] += 1
+            else:
+                print condtuple, "was not in keys."
+        else:
+            counts[condtuple] += 1
     mincount = min( counts.values() )
     minima = [hash for hash, count in counts.iteritems() if count == mincount]
     chosen = choice(minima)
@@ -528,6 +536,8 @@ def regularpage(pagename=None):
 # let's start
 ###########################################################
 if __name__ == '__main__':
+    VERBOSE = True
+    print get_random_condcount()
     from db import init_db
     init_db()
     
